@@ -1,2 +1,35 @@
-/DS_STORE
-/node_modules
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/server/frontend/node_modules
+/server/frontend/.pnp
+/server/frontend/.pnp.js
+
+# testing
+/server/frontend/coverage
+
+# next.js
+/server/frontend/.next/
+/server/frontend/_static/
+
+
+# production
+/server/frontend/build
+
+# misc
+*.DS_Store*
+*node_modules*
+
+# debug
+/server/frontend/npm-debug.log*
+/server/frontend/yarn-debug.log*
+/server/frontend/yarn-error.log*
+
+# generated - Rust
+/server/target
+
+# local env files
+/server/frontend/.env.local
+/server/frontend/.env.development.local
+/server/frontend/.env.test.local
+/server/frontend/.env.production.local
