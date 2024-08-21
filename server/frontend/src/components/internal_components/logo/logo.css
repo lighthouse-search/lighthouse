@@ -1,0 +1,18 @@
+.logo_div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo_title {
+    font: caption;
+    font-size: 40px;
+    font-weight: bold;
+
+    text-shadow: 
+        -0.1px -0.1px 0 black, /* Top-left shadow */
+         0.1px -0.1px 0 black, /* Top-right shadow */
+        -0.1px  0.1px 0 black, /* Bottom-left shadow */
+         0.1px  0.1px 0 black; /* Bottom-right shadow */
+}

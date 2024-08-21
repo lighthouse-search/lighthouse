@@ -62,3 +62,18 @@
 .do_you_mean {
     /* font-weight: bold; */
 }
+
+.not_happening_mate {
+    display: flex;
+    flex-direction: column;
+}
+
+/* .not_happening_mate .header_image {
+    width: 120px;
+    height: 120px;
+}
+
+.not_happening_mate p {
+    width: 260px;
+    text-align: center;
+} */
