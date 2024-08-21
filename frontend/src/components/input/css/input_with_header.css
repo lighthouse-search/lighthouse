@@ -1,0 +1,30 @@
+.input_with_header {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+}
+
+.input_with_header_expanded {
+    width: 100%;
+}
+
+.input_with_header_expanded input {
+    width: 100%;
+}
+
+.input_with_header_headertxt {
+    font-size: 14px;
+    /* font-weight: bold; */
+}
+
+.input_with_header_input {
+    /* width: 94.2%; */
+    width: 100%;
+}
+
+.input_with_header_content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}

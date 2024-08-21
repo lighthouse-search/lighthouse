@@ -1,0 +1,38 @@
+.Video_listing1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+    text-align: start;
+
+    padding-top: 4px;
+    padding-bottom: 4px;
+
+    width: 100%;
+}
+
+.Video_listing1 button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+    text-align: start;
+
+    padding-top: 4px;
+    padding-bottom: 4px;
+
+    width: 100%;
+}
+
+.Video_listing1_thumbnail {
+    width: 115px;
+    height: 60px;
+}
+
+.Video_listing1_content_header {
+    font-size: 14px;
+}
+
+.Video_listing1_content_subtext {
+    font-size: 12px;
+}

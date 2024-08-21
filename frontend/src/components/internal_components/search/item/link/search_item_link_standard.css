@@ -1,0 +1,31 @@
+.search_item_link_standard {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.search_item_link_standard_link_information {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 4px;
+}
+
+.search_item_link_standard_link_information_img {
+    width: 20px;
+    height: 20px;
+}
+
+.search_item_link_standard_link_information_url {
+    font-size: 14px;
+}
+
+.search_item_link_standard_title {
+    font-size: 18px;
+}
+
+.search_item_link_standard_description {
+    font-size: 14px;
+}
