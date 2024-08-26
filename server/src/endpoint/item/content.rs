@@ -6,10 +6,8 @@ use rocket::response::{status, status::Custom};
 use rocket::http::Status;
 
 use diesel::sql_query;
+use diesel::prelude::*;
 use diesel::sql_types::*;
-
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::diesel::{MysqlPool, prelude::*};
 
 use crate::global::{generate_random_id, get_epoch, is_null_or_whitespace, request_authentication};
 use crate::internal::folder::{folder_get, folder_list};
@@ -21,7 +19,8 @@ use crate::tables::*;
 use crate::SQL_TABLES;
 
 #[get("/list?<item>")]
-pub async fn item_content_list(mut db: Connection<Db>, item: Option<String>, params: &Query_string) -> Custom<Value> {
+pub async fn item_content_list(item: Option<String>, params: &Query_string) -> Custom<Value> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
 
     if (is_null_or_whitespace(item.clone()) == true) {
@@ -29,15 +28,13 @@ pub async fn item_content_list(mut db: Connection<Db>, item: Option<String>, par
     }
     let item_id: String = item.unwrap();
 
-    let request_authentication_output: Request_authentication_output = match request_authentication(db, None, params, "/item/content/list", false).await {
+    let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/item/content/list", false).await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
     };
-    db = request_authentication_output.returned_connection;
 
     // Get the item. This will check this person has permission to access the item (because we passed a user_id).
-    let (item_data, error_to_respond_with, folder_db) = crate::internal::item::index::item_get(db, item_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Error looking up folder.");
-    db = folder_db;
+    let (item_data, error_to_respond_with) = crate::internal::item::index::item_get(item_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Error looking up folder.");
 
     if (error_to_respond_with.is_none() == false) {
         return status::Custom(Status::BadRequest, error_to_respond_with.unwrap());
@@ -48,8 +45,7 @@ pub async fn item_content_list(mut db: Connection<Db>, item: Option<String>, par
     let item_data_public: Mindmap_item_public = item_data.unwrap().into();
 
     // TODO: Return item_content_result as Option<Vec<Mindmap_item_content>> - for example, I forgot error_to_respond_with here at one point, and it would have just returned and empty result with no reliability. This should be added to everything else as well.
-    let (item_content_result, error_to_respond_with, content_list_db) = crate::internal::item::content::content_list(db, item_id.clone(), request_authentication_output.user_id.clone()).await.expect("Failed to get item content list.");
-    db = content_list_db;
+    let (item_content_result, error_to_respond_with) = crate::internal::item::content::content_list(item_id.clone(), request_authentication_output.user_id.clone()).await.expect("Failed to get item content list.");
 
     if (error_to_respond_with.is_none() == false) {
         return status::Custom(Status::BadRequest, error_to_respond_with.unwrap());
@@ -68,8 +64,7 @@ pub async fn item_content_list(mut db: Connection<Db>, item: Option<String>, par
     }
 
     // Get keywords for this item, using the joined text. This will use SQL's LIKE to find relevant keywords used here.
-    let (keywords_for_item, error_to_respond_with, keywords_from_text_db) = keywords_from_text(db, texts.join(" "), request_authentication_output.user_id.clone()).await.expect("Failed to get keywords from text");
-    db = keywords_from_text_db;
+    let (keywords_for_item, error_to_respond_with) = keywords_from_text(texts.join(" "), request_authentication_output.user_id.clone()).await.expect("Failed to get keywords from text");
 
     if (error_to_respond_with.is_none() == false) {
         return status::Custom(Status::BadRequest, error_to_respond_with.unwrap());
@@ -90,16 +85,16 @@ pub async fn item_content_list(mut db: Connection<Db>, item: Option<String>, par
 }
 
 #[post("/update", format = "application/json", data = "<body>")]
-pub async fn item_content_update(mut db: Connection<Db>, params: &Query_string, mut body: Json<Item_content_update_body>) -> Custom<Value> {
+pub async fn item_content_update(params: &Query_string, mut body: Json<Item_content_update_body>) -> Custom<Value> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
 
     let item_content_table = sql.item_content.unwrap();
     
-    let request_authentication_output: Request_authentication_output = match request_authentication(db, None, params, "/item/content/update", false).await {
+    let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/item/content/update", false).await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
     };
-    db = request_authentication_output.returned_connection;
 
     // Validate inputs before writing all the incoming data.
 
@@ -185,8 +180,7 @@ pub async fn item_content_update(mut db: Connection<Db>, params: &Query_string, 
             println!("Item ID already authed for this batch: {}", item_id.clone());
             item_data = Some(item_status.clone());
         } else {
-            let (item_status, error_to_respond_with, folder_db) = item_get(db, item_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Error looking up item.");
-            db = folder_db;
+            let (item_status, error_to_respond_with) = item_get(item_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Error looking up item.");
 
             if (error_to_respond_with.is_none() == false) {
                 return status::Custom(Status::BadRequest, error_to_respond_with.unwrap());
@@ -223,8 +217,7 @@ pub async fn item_content_update(mut db: Connection<Db>, params: &Query_string, 
             // We know 'user_input.id' exists, because we checked when validating the 'user_input.action'.
             row_id = user_input.row_id.clone().expect("missing user_input.row_id");
 
-            let (item, error_to_respond_with, item_db) = item_get(db, item_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Failed to get folder.");  
-            db = item_db;
+            let (item, error_to_respond_with) = item_get(item_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Failed to get folder.");
             
             if (item.is_none() == true) {
                 return status::Custom(Status::BadRequest, error_message(&format!("Item does not exist: '{}'", item_id.clone())));
@@ -239,7 +232,6 @@ pub async fn item_content_update(mut db: Connection<Db>, params: &Query_string, 
             .bind::<Text, _>(row_id.clone())
             .bind::<Text, _>(item_id.clone())
             .execute(&mut db)
-            .await
             .expect("Something went wrong querying the DB.");
         } else if (action_type == "create") {
             // format!() is not for values. It uses heavily vetted and sanitized values that are directly from the admin's configuration on local environment variables.
@@ -251,7 +243,6 @@ pub async fn item_content_update(mut db: Connection<Db>, params: &Query_string, 
             .bind::<Text, _>(content.clone())
             .bind::<BigInt, _>(get_epoch())
             .execute(&mut db)
-            .await
             .expect("Something went wrong querying the DB.");
         }
     }

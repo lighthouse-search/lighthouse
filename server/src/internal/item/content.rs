@@ -3,9 +3,8 @@ use rocket::serde::json::{Value, json};
 use rocket::response::{status, status::Custom};
 use rocket::http::Status;
 
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::diesel::{MysqlPool, prelude::*};
 use diesel::sql_query;
+use diesel::prelude::*;
 use diesel::sql_types::*;
 
 use crate::global::{generate_random_id, get_epoch, is_null_or_whitespace, request_authentication};
@@ -14,7 +13,8 @@ use crate::structs::*;
 use crate::tables::*;
 use crate::SQL_TABLES;
 
-pub async fn content_list(mut db: Connection<Db>, item: String, user_id: String) -> Result<(Vec<Mindmap_item_content>, Option<Value>, Connection<Db>), String> {
+pub async fn content_list(item: String, user_id: String) -> Result<(Vec<Mindmap_item_content>, Option<Value>), String> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
 
     let folder_table = sql.folder.unwrap();
@@ -25,14 +25,13 @@ pub async fn content_list(mut db: Connection<Db>, item: String, user_id: String)
     let selection = format!("SELECT parent, item, rank, content, row_id, created FROM {}", item_content_table.clone());
 
     // Check we have permission to access the folder.
-    let (item_status, error_to_respond_with, item_db) = crate::internal::item::index::item_get(db, item.clone(), Some(user_id.clone())).await.expect("Error looking up folder.");
-    db = item_db;
+    let (item_status, error_to_respond_with) = crate::internal::item::index::item_get(item.clone(), Some(user_id.clone())).await.expect("Error looking up folder.");
 
     if (error_to_respond_with.is_none() == false) {
-        return Ok((Vec::new(), Some(error_to_respond_with.unwrap()), db));
+        return Ok((Vec::new(), Some(error_to_respond_with.unwrap())));
     }
     if (item_status.is_none() == true) {
-        return Ok((Vec::new(), Some(error_message("Item was not found.")), db));
+        return Ok((Vec::new(), Some(error_message("Item was not found."))));
     }
 
     // User ID is checked in the item_get above. It hasn't been missed!
@@ -40,13 +39,11 @@ pub async fn content_list(mut db: Connection<Db>, item: String, user_id: String)
     let mut item_content_results: Vec<Mindmap_item_content> = sql_query(&format!("{} WHERE item=? ORDER BY created ASC", selection))
     .bind::<Text, _>(item.clone())
     .load::<Mindmap_item_content>(&mut db)
-    .await
     .expect("Something went wrong querying the DB.");
 
     return Ok((
         item_content_results,
-        None,
-        db
+        None
     ));
 }
 

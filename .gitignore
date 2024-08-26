@@ -12,7 +12,6 @@
 /server/frontend/.next/
 /server/frontend/_static/
 
-
 # production
 /server/frontend/build
 

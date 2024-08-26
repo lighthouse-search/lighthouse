@@ -1,9 +1,8 @@
-use rocket::serde::{Serialize, Deserialize};
 use diesel::prelude::*;
-use diesel::sql_types::*;
-use crate::structs::*;
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::diesel::{MysqlPool, prelude::*};
+use rocket::serde::{Serialize, Deserialize};
+use diesel::r2d2::{self, ConnectionManager};
+
+type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
 diesel::table! {
     posts (id) {

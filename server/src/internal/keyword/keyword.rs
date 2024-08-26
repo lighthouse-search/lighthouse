@@ -6,9 +6,8 @@ use rocket::serde::json::{Value, json};
 use rocket::response::{status, status::Custom};
 use rocket::http::Status;
 
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::diesel::{MysqlPool, prelude::*};
 use diesel::sql_query;
+use diesel::prelude::*;
 use diesel::sql_types::*;
 
 use crate::global::{generate_random_id, get_epoch, is_null_or_whitespace, request_authentication};
@@ -17,7 +16,9 @@ use crate::structs::*;
 use crate::tables::*;
 use crate::SQL_TABLES;
 
-pub async fn keyword_list(mut db: Connection<Db>, user_id: String, ids: Option<Vec<String>>, text: Option<String>) -> Result<(Vec<Rendered_keyword>, Option<Value>, Connection<Db>), String> {
+pub async fn keyword_list(user_id: String, ids: Option<Vec<String>>, text: Option<String>) -> Result<(Vec<Rendered_keyword>, Option<Value>), String> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
+
     let mut query = crate::tables::keywords::table
     .inner_join(keyword_metadata::table.on(crate::tables::keyword_metadata::id.eq(keywords::keyword_metadata)))
     .filter(keyword_metadata::owner.eq(user_id.clone()))
@@ -39,7 +40,6 @@ pub async fn keyword_list(mut db: Connection<Db>, user_id: String, ids: Option<V
         Option<Keyword_metadata>,
         Option<String>
     )>(&mut db)
-    .await
     .expect("Something went wrong querying the DB.");
 
     let mut metadata_store: IndexMap<String, Rendered_keyword> = IndexMap::new();
@@ -82,13 +82,13 @@ pub async fn keyword_list(mut db: Connection<Db>, user_id: String, ids: Option<V
 
     return Ok((
         item_results,
-        None,
-        db
+        None
     ));
 }
 
 // TODO: KEYWORD_GET NEEDS TO BE CHANGED BECAUSE IT INCLUDES RAW DB INFORMATION.
-pub async fn keyword_get(mut db: Connection<Db>, id: String, write_authorized: Option<String>) -> Result<(Option<Keyword_sql>, Option<Value>, Connection<Db>), String> {
+pub async fn keyword_get(id: String, write_authorized: Option<String>) -> Result<(Option<Keyword_sql>, Option<Value>), String> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
 
     let keyword_table = sql.keyword.unwrap();
@@ -105,12 +105,11 @@ ON keyword.owner = keyword_metadata.owner", keyword_table.clone(), keyword_metad
     results = sql_query(&format!("{} WHERE keyword_metadata.id=?", selection))
     .bind::<Text, _>(id.clone())
     .load::<Keyword_sql>(&mut db)
-    .await
     .expect("Something went wrong querying the DB.");
 
     if (results.len() == 0) {
         // Not found.
-        return Ok((None, None, db));
+        return Ok((None, None));
     }
 
     let result = results[0].clone();
@@ -118,24 +117,21 @@ ON keyword.owner = keyword_metadata.owner", keyword_table.clone(), keyword_metad
     if (write_authorized.is_none() == false) {
         if (result.owner.clone().unwrap() != write_authorized.unwrap()) {
             // We found a result, but the user doesn't have write access. [Currently we're just checking if they're the owner until there is a better system]
-            return Ok((None, Some(error_message("You need write authorization for the specified folder.")), db));
+            return Ok((None, Some(error_message("You need write authorization for the specified folder."))));
         }
     }
 
     return Ok((
         Some(result),
-        None,
-        db
+        None
     ));
 }
 
-pub async fn keywords_from_text(mut db: Connection<Db>, text: String, user_id: String) -> Result<(Vec<Rendered_keyword>, Option<Value>, Connection<Db>), String> {
-    let (item_results, error_to_respond_with, keyword_db) = keyword_list(db, user_id, None, Some(text)).await.expect("Failed to get keyword_list");
-    db = keyword_db;
+pub async fn keywords_from_text(text: String, user_id: String) -> Result<(Vec<Rendered_keyword>, Option<Value>), String> {
+    let (item_results, error_to_respond_with) = keyword_list(user_id, None, Some(text)).await.expect("Failed to get keyword_list");
 
     return Ok((
         item_results,
-        None,
-        db
+        None
     ));
 }

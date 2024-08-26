@@ -16,9 +16,5 @@ hades_auth = { version = "0.1.4" }
 url = "2.5.0"
 hex-literal = "0.4.1"
 lettre = "0.11.7"
-diesel = { version = "2", features = ["returning_clauses_for_sqlite_3_35"] }
+diesel = { version = "2.2.3", features = ["mysql", "r2d2"] }
 indexmap = "2.4.0"
-
-[dependencies.rocket_db_pools]
-version = "0.2.0"
-features = ["diesel_mysql"]

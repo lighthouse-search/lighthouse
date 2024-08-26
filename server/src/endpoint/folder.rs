@@ -3,9 +3,8 @@ use rocket::serde::json::{Value, json};
 use rocket::response::{status, status::Custom};
 use rocket::http::Status;
 
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::diesel::{MysqlPool, prelude::*};
 use diesel::sql_query;
+use diesel::prelude::*;
 use diesel::sql_types::*;
 
 use crate::global::{generate_random_id, get_epoch, request_authentication};
@@ -16,20 +15,19 @@ use crate::tables::*;
 use crate::SQL_TABLES;
 
 #[get("/list")]
-pub async fn folder_list(mut db: Connection<Db>, params: &Query_string) -> Custom<Value> {
+pub async fn folder_list(params: &Query_string) -> Custom<Value> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
 
-    let request_authentication_output: Request_authentication_output = match request_authentication(db, None, params, "/folder/list", false).await {
+    let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/folder/list", false).await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
     };
-    db = request_authentication_output.returned_connection;
 
     // format!() is not for values. It uses heavily vetted and sanitized values that are directly from the admin's configuration on local environment variables.
     let folder_result: Vec<Mindmap_folder> = sql_query(format!("SELECT id, title, owner, created, visibility FROM {} WHERE owner=? ORDER BY created DESC", sql.folder.unwrap()))
     .bind::<Text, _>(request_authentication_output.user_id)
     .load::<Mindmap_folder>(&mut db)
-    .await
     .expect("Something went wrong querying the DB.");
 
     let mut folder_public: Vec<Mindmap_folder_public> = folder_result
@@ -44,14 +42,14 @@ pub async fn folder_list(mut db: Connection<Db>, params: &Query_string) -> Custo
 }
 
 #[post("/update", format = "application/json", data = "<body>")]
-pub async fn folder_update(mut db: Connection<Db>, params: &Query_string, mut body: Json<Folder_update_body>) -> Custom<Value> {
+pub async fn folder_update(params: &Query_string, mut body: Json<Folder_update_body>) -> Custom<Value> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
     
-    let request_authentication_output: Request_authentication_output = match request_authentication(db, None, params, "/folder/update", false).await {
+    let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/folder/update", false).await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
     };
-    db = request_authentication_output.returned_connection;
 
     // TODO: There should be an action logic pipeline.
     
@@ -79,8 +77,7 @@ pub async fn folder_update(mut db: Connection<Db>, params: &Query_string, mut bo
 
     if (body.inner_folder.is_none() == false) {
         let folder_id = body.inner_folder.clone().unwrap();
-        let (folder_status, error_to_respond_with, folder_db) = folder_get(db, folder_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Error looking up folder.");
-        db = folder_db;
+        let (folder_status, error_to_respond_with) = folder_get(folder_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Error looking up folder.");
 
         if (error_to_respond_with.is_none() == false) {
             return status::Custom(Status::BadRequest, error_to_respond_with.unwrap());
@@ -100,8 +97,7 @@ pub async fn folder_update(mut db: Connection<Db>, params: &Query_string, mut bo
         // We know 'body.id' exists, because we checked when validating the 'body.action'.
         folder_id = body.id.clone().unwrap(); 
 
-        let (folder, error_to_respond_with, folder_db) = folder_get(db, folder_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Failed to get folder.");  
-        db = folder_db;
+        let (folder, error_to_respond_with) = folder_get(folder_id.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Failed to get folder.");  
 
         if (folder.is_none() == true) {
             return status::Custom(Status::BadRequest, error_message(&format!("Folder does not exist: '{}'", folder_id.clone())));
@@ -114,18 +110,16 @@ pub async fn folder_update(mut db: Connection<Db>, params: &Query_string, mut bo
         .bind::<Text, _>(folder_id.clone())
         .bind::<Text, _>(request_authentication_output.user_id.clone())
         .load::<Mindmap_folder>(&mut db)
-        .await
         .expect("Something went wrong querying the DB.");
     } else if (action == "create") {
-        let result: Vec<Mindmap_folder> = sql_query(&format!("INSERT INTO {} (id, title, folder, visibility, owner, created) VALUES (?, ?, ?, ?, ?, ?)", sql.folder.unwrap()))
+        let result = sql_query(&format!("INSERT INTO {} (id, title, folder, visibility, owner, created) VALUES (?, ?, ?, ?, ?, ?)", sql.folder.unwrap()))
         .bind::<Text, _>(folder_id.clone())
         .bind::<Text, _>(title.clone())
         .bind::<Nullable<Text>, _>(inner_folder.clone())
         .bind::<Text, _>(visibility.clone())
         .bind::<Text, _>(request_authentication_output.user_id.clone())
         .bind::<BigInt, _>(get_epoch())
-        .load::<Mindmap_folder>(&mut db)
-        .await
+        .execute(&mut db)
         .expect("Something went wrong querying the DB.");
     }
 

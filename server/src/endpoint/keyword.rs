@@ -3,9 +3,8 @@ use rocket::serde::json::{Value, json};
 use rocket::response::{status, status::Custom};
 use rocket::http::Status;
 
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::diesel::{MysqlPool, prelude::*};
 use diesel::sql_query;
+use diesel::prelude::*;
 use diesel::sql_types::*;
 
 use crate::global::{generate_random_id, get_epoch, is_null_or_whitespace, request_authentication};
@@ -19,12 +18,12 @@ use crate::SQL_TABLES;
 use url::Url;
 
 #[get("/list?<ids>")]
-pub async fn keyword_list(mut db: Connection<Db>, params: &Query_string, ids: Option<String>) -> Custom<Value> {
-    let request_authentication_output: Request_authentication_output = match request_authentication(db, None, params, "/keyword/list", false).await {
+pub async fn keyword_list(params: &Query_string, ids: Option<String>) -> Custom<Value> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
+    let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/keyword/list", false).await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
     };
-    db = request_authentication_output.returned_connection;
 
     let mut ids_split: Vec<String> = Vec::new();
     if (ids.is_none() == false) {
@@ -33,8 +32,7 @@ pub async fn keyword_list(mut db: Connection<Db>, params: &Query_string, ids: Op
         .collect();
     }
 
-    let (rendered_keywords, error_to_respond_with, keyword_db) = crate::internal::keyword::keyword::keyword_list(db, request_authentication_output.user_id.clone(), Some(ids_split), None).await.expect("Failed to get keyword_list");
-    db = keyword_db;
+    let (rendered_keywords, error_to_respond_with) = crate::internal::keyword::keyword::keyword_list(request_authentication_output.user_id.clone(), Some(ids_split), None).await.expect("Failed to get keyword_list");
     
     if (error_to_respond_with.is_none() == false) {
         return status::Custom(Status::BadRequest, error_to_respond_with.unwrap());
@@ -52,14 +50,14 @@ pub async fn keyword_list(mut db: Connection<Db>, params: &Query_string, ids: Op
 }
 
 #[post("/update", format = "application/json", data = "<body>")]
-pub async fn keyword_update(mut db: Connection<Db>, params: &Query_string, mut body: Json<Keyword_update_body>) -> Custom<Value> {
+pub async fn keyword_update(params: &Query_string, mut body: Json<Keyword_update_body>) -> Custom<Value> {
+    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     let sql: Config_sql = (&*SQL_TABLES).clone();
     
-    let request_authentication_output: Request_authentication_output = match request_authentication(db, None, params, "/keyword/update", false).await {
+    let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/keyword/update", false).await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
     };
-    db = request_authentication_output.returned_connection;
 
     // TODO: There should be an action logic pipeline.
 
@@ -158,8 +156,7 @@ pub async fn keyword_update(mut db: Connection<Db>, params: &Query_string, mut b
             // We know 'body.id' exists, because we checked when validating the 'body.action'.
             keyword_metadata = action_data.id.clone().unwrap(); 
 
-            let (folder, error_to_respond_with, folder_db) = keyword_get(db, keyword_metadata.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Failed to get folder.");  
-            db = folder_db;
+            let (folder, error_to_respond_with) = keyword_get(keyword_metadata.clone(), Some(request_authentication_output.user_id.clone())).await.expect("Failed to get folder.");  
 
             if (folder.is_none() == true) {
                 return status::Custom(Status::BadRequest, error_message(&format!("Keyword metadata does not exist: '{}'", keyword_metadata.clone())));
@@ -172,7 +169,6 @@ pub async fn keyword_update(mut db: Connection<Db>, params: &Query_string, mut b
             .bind::<Text, _>(keyword_metadata.clone())
             .bind::<Text, _>(request_authentication_output.user_id.clone())
             .execute(&mut db)
-            .await
             .expect("Something went wrong querying the DB.");
         } else if (action_type == "create") {
             sql_query(&format!("INSERT INTO {} (id, owner, description, external_link, external_image, created) VALUES (?, ?, ?, ?, ?, ?)", sql.keyword_metadata.clone().unwrap()))
@@ -183,7 +179,6 @@ pub async fn keyword_update(mut db: Connection<Db>, params: &Query_string, mut b
             .bind::<Nullable<Text>, _>(external_image.clone())
             .bind::<BigInt, _>(get_epoch())
             .execute(&mut db)
-            .await
             .expect("Something went wrong querying the DB.");
         }
 
@@ -199,7 +194,6 @@ pub async fn keyword_update(mut db: Connection<Db>, params: &Query_string, mut b
                 .bind::<Nullable<Text>, _>(keyword_metadata.clone())
                 .bind::<BigInt, _>(get_epoch())
                 .execute(&mut db)
-                .await
                 .expect("Something went wrong querying the DB.");
             } else if (action_type == "remove") {
                 sql_query(&format!("DELETE FROM {} WHERE keyword=? AND keyword_metadata=? AND owner=?", sql.keyword.clone().unwrap()))
@@ -207,7 +201,6 @@ pub async fn keyword_update(mut db: Connection<Db>, params: &Query_string, mut b
                 .bind::<Text, _>(keyword_metadata.clone())
                 .bind::<Text, _>(request_authentication_output.user_id.clone())
                 .execute(&mut db)
-                .await
                 .expect("Something went wrong querying the DB.");
             }
         }

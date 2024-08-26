@@ -55,6 +55,22 @@ use crate::responses::*;
 use crate::structs::*;
 use crate::database::validate_sql_table_inputs;
 
+use diesel::MysqlConnection;
+use diesel::prelude::*;
+use diesel::sql_types::*;
+use diesel::r2d2::{self, ConnectionManager};
+
+// Create a type alias for the connection pool
+type Pool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
+
+// Create a Lazy static variable for the connection pool
+static DB_POOL: Lazy<Pool> = Lazy::new(|| {
+    let manager = ConnectionManager::<MysqlConnection>::new(crate::database::get_default_database_url());
+    r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool.")
+});
+
 pub static CONFIG_VALUE: Lazy<Value> = Lazy::new(|| {
     get_config().expect("Failed to get config")
 });
@@ -106,7 +122,7 @@ async fn rocket() -> _ {
     validate_sql_table_inputs(unsafe_do_not_use_raw_sql_tables).await.expect("Config validation failed.");
 
     let figment = rocket::Config::figment()
-        .merge(("databases.diesel_mysql.url", database::get_default_database_url().await));
+        .merge(("databases.diesel_mysql.url", database::get_default_database_url()));
 
     rocket::custom(figment)
         .attach(Cors)
