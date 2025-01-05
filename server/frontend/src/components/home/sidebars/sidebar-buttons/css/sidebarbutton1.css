@@ -3,20 +3,23 @@
     text-decoration: none;
 }
 
-.Sidebarbutton button {
+.Sidebarbutton {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     padding: 5px;
-    width: 100%;
-    width: 35px;
-    height: 35px;
-    column-gap: 2px;
+    column-gap: 4px;
     font-size: 14px;
+
+    color: white;
+    background-color: rgba(0, 0, 0, 0.201);
 }
 
 .Sidebarbutton img {
-    max-width: 22px;
-    max-height: 22px;
+    max-width: 20px;
+    max-height: 20px;
+
+    /* max-width: 22px;
+    max-height: 22px; */
 }

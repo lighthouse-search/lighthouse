@@ -57,8 +57,8 @@ dialog {
 
 Input {
   position: relative;
-  /* background-color: #303132; */
-  box-shadow: 0 1px 2px 0 rgb(0, 0, 0);
+  background-color: #f4f4f4;
+  box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
   padding: 12px;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -93,6 +93,7 @@ button {
 
 button:hover {
   /* background-color: rgb(85, 85, 85); */
+  background-color: rgb(239, 239, 239);
   filter: brightness(0.8);
 }
 
@@ -159,4 +160,8 @@ a {
   overflow: hidden;
   overflow-y: scroll;
   text-overflow: ellipsis;
+}
+
+.outline {
+  box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
 }

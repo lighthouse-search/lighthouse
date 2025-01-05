@@ -4,11 +4,10 @@ import Link from 'next/link'
 
 export default function SidebarButton1(props) {
     return (
-        <ToolTip text={props.alias}><Link href={props.href} className="Sidebarbutton">
-            <button>
-                {props.icon && <img src={props.icon}/>}
-                {props.children && props.children}
-            </button>
-        </Link></ToolTip>
+        <Link href={props.href} className="Sidebarbutton hover_underline">
+            {props.icon && <img src={props.icon}/>}
+            {props.alias && props.alias}
+            {props.children && props.children}
+        </Link>
     )
 }

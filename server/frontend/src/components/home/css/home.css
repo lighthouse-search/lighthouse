@@ -1,6 +1,6 @@
 .home1 {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 }
 
 .home1_children {
@@ -9,4 +9,14 @@
     width: 100%;
     height: 100vh;
     overflow: hidden;
+}
+
+.search_home_base {
+    background-image: url("https://images.unsplash.com/photo-1732482124606-697008dab09c?q=80&w=2942&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+    /* background-image: url("/placeholders/moon-1.jpg"); */
+    background-size: cover;
+    /* background-color: rgba(0, 0, 0, 0.468); */
+    background-color: rgba(0, 0, 0, 0.609);
+    background-blend-mode: overlay;
+    background-position: 50%;
 }

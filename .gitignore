@@ -32,3 +32,4 @@
 /server/frontend/.env.development.local
 /server/frontend/.env.test.local
 /server/frontend/.env.production.local
+server/.DS_Store

@@ -1,0 +1,23 @@
+.email_row1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* column-gap: 14px; */
+    column-gap: 8px;
+    border-top: 0.1px black solid;
+    padding: 6px;
+
+    font-size: 14px;
+    width: 100%;
+    
+    box-shadow: unset;
+    background-color: unset;
+    border-radius: 0px;
+}
+
+.email_row1 .metadata {
+    display: flex;
+    flex-direction: row;
+    /* column-gap: 14px; */
+    column-gap: 10px;
+}

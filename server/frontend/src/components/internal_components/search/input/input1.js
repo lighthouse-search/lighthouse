@@ -31,7 +31,10 @@ export default function Search_Input1(props) {
         }
     }
 
+    // let placeholder = "Search ACME CO | websites, documents, emails, files";
+    let placeholder = "Search";
+
     return (
-        <input {...props.className} className={`search_bar_input ${props.className}`} placeholder="Search MotionFans | websites, documents, emails, files" value={query} onChange={(e) => { set_query(e.target.value); }} onKeyDown={input_key_down}/>
+        <input {...props.className} className={`search_bar_input ${props.className}`} placeholder={placeholder} value={query} onChange={(e) => { set_query(e.target.value); }} onKeyDown={input_key_down}/>
     )
 }
