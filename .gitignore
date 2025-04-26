@@ -12,6 +12,8 @@
 /server/frontend/.next/
 /server/frontend/_static/
 
+/server/frontend/public/placeholders
+
 # production
 /server/frontend/build
 
@@ -33,3 +35,4 @@
 /server/frontend/.env.test.local
 /server/frontend/.env.production.local
 server/.DS_Store
+/frontend/admin/_static

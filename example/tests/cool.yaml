@@ -1,0 +1,14 @@
+version: 1.0
+name: Cool Test
+description: This is a cool test configuration file.
+settings:
+  environment: production
+  retries: 3
+  timeout: 30
+tests:
+  - name: Test 1
+    description: First test case
+    command: echo "Running Test 1"
+  - name: Test 2
+    description: Second test case
+    command: echo "Running Test 2"

@@ -1,0 +1,111 @@
+version: 1.0
+name: Bluesky health check
+description: Tests and validates API responses to verify Bluesky health.
+settings:
+  project_id: d3103f56-d4a8-11ef-a084-0242ac110002
+
+jobs:
+    build:
+        env:
+            url: https://gomphus.us-west.host.bsky.network
+            BLUESKY_DID: did:plc:sgcrgcztzb5eqvajnkigmhhv4
+            BLUESKY_HANDLE: bot.oracularhades.com
+            BLUESKY_PASSWORD: redacted
+            access_jwt: redacted
+        commands:
+            - name: Post to Bluesky
+              run: |
+                export response=$(curl -X POST --fail "$url/xrpc/com.atproto.repo.createRecord" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "repo": "'"$BLUESKY_DID"'",
+                        "collection": "app.bsky.feed.post",
+                        "record": {
+                            "text": "Hello world! I posted this via the API.",
+                            "createdAt": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'"
+                        }
+                    }')
+                export post_uri=$(echo $response | jq -r '.uri') &&
+                export post_cid=$(echo $response | jq -r '.cid') &&
+                export post_rkey=$(echo $response | jq -r '.commit.rev') &&
+                export post_uris=($post_uri) &&
+                json=$(printf '%s\n' "${post_uris[@]}" | jq -R . | jq -s .) &&
+                curl -X GET --fail "$url/xrpc/app.bsky.feed.getPosts?uris=${post_uris[@]}" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json" &&
+                curl -X GET --fail "$url/xrpc/app.bsky.feed.getPostThread?uri=${post_uris[@]}" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json" &&
+                curl -X POST "$url/xrpc/com.atproto.repo.createRecord" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "collection": "app.bsky.feed.like",
+                        "repo": "'"$BLUESKY_DID"'",
+                        "record": {
+                            "$type": "app.bsky.feed.like",
+                            "subject": {
+                                "uri": "'$post_uri'",
+                                "cid": "'$post_cid'"
+                            },
+                            "createdAt": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'",
+                            "$type": "app.bsky.feed.like"
+                        }
+                    }' &&
+                curl -X POST "$url/xrpc/com.atproto.repo.createRecord" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "collection": "app.bsky.feed.repost",
+                        "repo": "'"$BLUESKY_DID"'",
+                        "record": {
+                            "$type": "app.bsky.feed.repost",
+                            "subject": {
+                                "uri": "'$post_uri'",
+                                "cid": "'$post_cid'"
+                            },
+                            "createdAt": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'",
+                            "$type": "app.bsky.feed.repost"
+                        }
+                    }' &&
+                curl -X POST --fail "$url/xrpc/com.atproto.repo.deleteRecord" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "repo": "'"$BLUESKY_DID"'",
+                        "collection": "app.bsky.feed.post",
+                        "rkey": "'"$post_rkey"'"
+                    }'
+            - name: Get Profile
+              run: |
+                curl -X GET --fail "$url/xrpc/app.bsky.actor.getProfile?actors=$BLUESKY_DID" | jq -e '
+                    (.displayName == null) or
+                    (.avatar == null) or
+                    (.description == null)
+                    ' && { echo "Error: One of the specified keys is null" >&2; exit 1; } || echo "All specified keys are non-null"
+            - name: Get author feed
+              run: |
+                curl -X GET --fail "$url/xrpc/app.bsky.feed.getAuthorFeed?limit=30&actor=$BLUESKY_DID" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json"
+            - name: Get author likes
+              run: |
+                curl -X GET --fail "$url/xrpc/app.bsky.feed.getActorLikes?limit=30&actor=$BLUESKY_DID" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json"
+            - name: Get notifications
+              run: |
+                curl -X GET --fail "$url/xrpc/app.bsky.notification.listNotifications?cursor=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json"
+            - name: Get Discover
+              run: |
+                curl -X GET --fail "$url/xrpc/app.bsky.feed.getFeed?feed=at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/whats-hot&limit=30" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json"
+            - name: Get Following
+              run: |
+                curl -X GET --fail "$url/xrpc/app.bsky.feed.getTimeline?limit=30" \
+                    -H "Authorization: Bearer $access_jwt" \
+                    -H "Content-Type: application/json"

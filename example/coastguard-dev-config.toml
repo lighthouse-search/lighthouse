@@ -1,0 +1,27 @@
+[features]
+reverse_proxy_authentication = true
+
+[database.mysql]
+username = "example-user"
+password_env = "example_user_mysql_password"
+hostname = "127.0.0.1"
+port = 3306
+database = "coastguard"
+
+[database.s3]
+acccess_key_id_env = "s3_access_key_id"
+secret_access_key_env = "s3_secret_access_key"
+endpoint_url = "https://165741ddf22256f1c2d442e345765203.r2.cloudflarestorage.com"
+region = "auto"
+
+[s3.buckets]
+videos = "buckets"
+
+[smtp]
+host="smtp.sendgrid.net"
+port=587
+username="apikey"
+from_alias="MotionFans Rover"
+from_header="noreply@paperplane.motionfans.com"
+reply_to_address="noreply@paperplane.motionfans.com"
+password_env="smtp_password"

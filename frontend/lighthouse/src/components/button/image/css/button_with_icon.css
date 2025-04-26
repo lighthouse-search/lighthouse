@@ -1,0 +1,12 @@
+.button_with_icon {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 4px;
+}
+
+.button_with_icon img {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}

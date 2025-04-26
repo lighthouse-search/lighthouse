@@ -1,0 +1,34 @@
+.User_card_row {
+    width: 100%;
+}
+
+.User_card_row button {
+    display: flex;
+    flex-direction: row;
+    column-gap: 15px;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.User_card_row_holder_div_content {
+    display: flex;
+    flex-direction: row;
+    column-gap: 14px;
+}
+
+.User_card_row_holder_div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 200px;
+    overflow: scroll;
+}
+
+.User_card_row_holder_header {
+    font-size: 12px;
+}
+
+.User_card_row_holder_value {
+    font-size: 13px;
+}

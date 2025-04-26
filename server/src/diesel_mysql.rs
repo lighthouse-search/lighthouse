@@ -1,14 +1,15 @@
 use rocket::response::{Debug, status::Created};
-use rocket::serde::{Serialize, Deserialize, json::Json};
 use rocket::response::status;
 use rocket::http::Status;
 use rocket::response::status::Custom;
-use rocket::serde::json::Value;
-use rocket::serde::json::json;
 use rocket::request::{self, Request, FromRequest};
 use rocket::{fairing::{Fairing, Info, Kind}, State};
 use rocket::fairing::AdHoc;
 use rocket::fs::FileServer;
+
+use serde::{Serialize, Deserialize};
+use serde_json::{Value, json};
+use rocket::serde::json::Json;
 
 use diesel::prelude::*;
 use diesel::sql_types::*;
@@ -33,12 +34,16 @@ use hades_auth::*;
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 
+use diesel::mysql::MysqlConnection;
+use diesel::r2d2::{self, ConnectionManager};
+use std::sync::Arc;
+
 #[options("/<_..>")]
 fn options_handler() -> &'static str {
     ""
 }
 
-/// Returns the current request's ID, assigning one only as necessary.
+// Returns the current request's ID, assigning one only as necessary.
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for &'r Query_string {
     type Error = ();
@@ -59,12 +64,20 @@ impl<'r> FromRequest<'r> for &'r Query_string {
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("Diesel SQLite Stage", |rocket| async {
         rocket
-        .mount("/", FileServer::from(format!("{}/frontend/_static", env::current_dir().expect("Could not get current process directory.").display())))
-        // .mount("/api", routes![options_handler])
-        // // .mount("/api/user", routes![crate::endpoint::user::user_list, crate::endpoint::user::user_update])
-        // .mount("/api/folder", routes![crate::endpoint::folder::folder_update]) // crate::endpoint::folder::folder_list (deprecated)
-        // .mount("/api/item", routes![crate::endpoint::item::index::item_list, crate::endpoint::item::index::item_update])
-        // .mount("/api/item/content", routes![crate::endpoint::item::content::item_content_list, crate::endpoint::item::content::item_content_update])
-        // .mount("/api/keyword", routes![crate::endpoint::keyword::keyword_list, crate::endpoint::keyword::keyword_update])
+        .mount("/api", routes![options_handler])
+        .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
+        .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index])
+        // .mount("/api/native-v1/issue", routes![crate::endpoint::issue::issue_list, crate::endpoint::issue::issue_update])
+        // .mount("/api/native-v1/event", routes![])
+        // .mount("/api/native-v1/request", routes![])
+        // .mount("/api/native-v1/timing", routes![])
+        // .mount("/api/native-v1/tests", routes![])
+        // .mount("/api/native-v1/discussion", routes![crate::endpoint::discussion::discussion_list, crate::endpoint::discussion::discussion_update])
+        .mount("/api/native-v1/account", routes![crate::endpoint::account::account_me, crate::endpoint::account::account_list])
+        // .mount("/api/native-v1/org", routes![crate::endpoint::org::org_list])
+        // .mount("/api/native-v1/namespace", routes![crate::endpoint::namespace::namespace_list])
+        // .mount("/api/native-v1/project", routes![crate::endpoint::project::project_list])
+        // .mount("/api/native-v1/user-rating", routes![crate::endpoint::user_rating::user_rating_list, crate::endpoint::user_rating::user_rating_update])
+        .mount("/api/native-v1/admin/index/job", routes![crate::endpoint::admin::index::admin_index_list, crate::endpoint::admin::index::admin_index_update])
     })
 }

@@ -5,7 +5,7 @@ reverse_proxy_authentication = true
 header = "host"
 
 [frontend.metadata]
-instance_hostname = "mindmap.oracularhades.com"
+instance_hostname = "guard.motionfans.com"
 alias = "Rover"
 public_description = "A device management tool."
 image = "https://images.unsplash.com/photo-1565799557186-1abfed8a31e5?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
@@ -31,9 +31,9 @@ magiclink = "magiclinks"
 host="smtp.sendgrid.net"
 port=587
 username="apikey"
-from_alias="Guard"
-from_header="noreply@paperplane.oracularhades.com"
-reply_to_address="noreply@paperplane.oracularhades.com"
+from_alias="Rover"
+from_header="noreply@paperplane.motionfans.com"
+reply_to_address="noreply@paperplane.motionfans.com"
 password_env="smtp_password"
 
 [captcha.hcaptcha.login_page]

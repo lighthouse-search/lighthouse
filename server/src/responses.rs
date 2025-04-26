@@ -1,10 +1,20 @@
-use rocket::serde::json::Value;
-use rocket::serde::json::json;
+use serde::{Serialize, Deserialize};
+use serde_json::{Value, json};
+use rocket::serde::json::Json;
 
-pub fn error_message(message: &str) -> Value {
+pub fn error_message(error_type: &str, message: &str) -> Value {
     return json!({
         "error": true,
+        "type": error_type,
         "message": message.to_string()
+    })
+}
+
+pub fn not_found(message: &str) -> Value {
+    return json!({
+        "error": true,
+        "message": message.to_string(),
+        "not_found": true
     })
 }
 
