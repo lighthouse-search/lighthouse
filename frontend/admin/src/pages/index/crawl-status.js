@@ -27,13 +27,13 @@ export default function Search_list() {
 
     async function job_list() {
         set_loading(true);
-        const jobs = await Lighthouse(await credentials_object(router)).admin.index.job.list();
+        const jobs = await Lighthouse(credentials_object(router)).admin.index.job.list();
         set_urls(jobs.data);
         set_loading(false);
     }
 
     async function cancel_job(id) {
-        await Lighthouse(await credentials_object(router)).admin.index.job.update({
+        await Lighthouse(credentials_object(router)).admin.index.job.update({
             actions: [
                 { action: "delete", id: id }
             ] 

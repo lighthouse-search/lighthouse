@@ -23,7 +23,7 @@ export default function Moderation_appeal() {
     });
 
     async function get_account() {
-       const accounts = await Lighthouse(await credentials_object(router)).account.list();
+       const accounts = await Lighthouse(credentials_object(router)).account.list();
        set_accounts(accounts.data);
     }
 

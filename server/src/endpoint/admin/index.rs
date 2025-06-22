@@ -1,11 +1,10 @@
-use rocket::response::{Debug, status::Created};
-use rocket::response::status;
+use rocket::response::{status, status::Custom};
 use rocket::http::Status;
-use rocket::response::status::Custom;
+use rocket::serde::json::Json;
+use rocket::{get, post};
 
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
-use rocket::serde::json::Json;
 
 use diesel::prelude::*;
 use diesel::sql_types::*;
@@ -27,6 +26,7 @@ pub async fn admin_index_list(ids: Option<String>, me: Option<bool>, authenticat
     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
     // TODO: This should have a dedicated function like video_get.
 
+    // TODO: This isn't verifying administrator permissions.
     let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/admin/index/job/list").await {
         Ok(data) => data,
         Err(e) => return status::Custom(Status::Unauthorized, not_authorized())

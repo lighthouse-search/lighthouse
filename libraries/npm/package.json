@@ -1,6 +1,6 @@
 {
   "name": "@oracularhades/lighthouse",
-  "version": "1.0.85",
+  "version": "1.0.86",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
@@ -13,5 +13,8 @@
   "dependencies": {
     "hades-auth": "^1.0.63",
     "jose": "^5.6.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }

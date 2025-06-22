@@ -5,6 +5,7 @@ import general from "./general.js";
 import query from "./query.js";
 import account from "./account.js";
 import admin from "./admin/index.js";
+import metadata from "./metadata.js";
 let deviceIDG = null;
 let privateKeyG = null;
 let typeG = null;
@@ -48,6 +49,7 @@ function Lighthouse(credsObject) {
         query: query,
         account: account,
         admin: admin,
+        metadata: metadata,
         getPlatformApiURLWithoutPathname
     };
 }

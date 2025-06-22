@@ -22,7 +22,7 @@ export default function Sidebar2(page_props) {
     const [mini_search, set_mini_search] = useState(false);
 
     async function run() {
-        let user = await Lighthouse(await credentials_object(router)).account.me();
+        let user = await Lighthouse(credentials_object(router)).account.me();
         user.data.profile_pic = `/profile-pictures/${Math.floor(Math.random() * 5)}.png`;
         set_user(user.data);
     }

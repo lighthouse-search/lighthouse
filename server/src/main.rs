@@ -1,7 +1,4 @@
-#[macro_use] extern crate rocket;
-
 // #[cfg(test)] mod tests;
-pub struct Cors;
 
 mod diesel_mysql;
 mod global;
@@ -10,6 +7,7 @@ mod responses;
 mod tables;
 mod database;
 mod security;
+mod guard;
 
 pub mod globals {
     pub mod environment_variables;
@@ -25,7 +23,7 @@ pub mod endpoint {
     pub mod org;
     pub mod crawler;
     pub mod user_rating;
-    // pub mod process;
+    pub mod metadata;
     pub mod admin {
         pub mod index;
     }
@@ -36,8 +34,15 @@ pub mod websocket {
     pub mod event;
 }
 
+pub mod network {
+    pub mod port;
+}
+
+use diesel_mysql::Cors;
+use guard::{build_guard_hostname_to_use, start_guard};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
+use rocket::{catch, catchers, Build, Rocket};
 use rocket::{Request, Response, request, request::FromRequest};
 // use websocket::connection::handle_connection;
 
@@ -45,6 +50,7 @@ use std::error::Error;
 use std::fs;
 use std::collections::HashMap;
 use std::env;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use once_cell::sync::Lazy;
@@ -117,45 +123,37 @@ static DB_POOL: Lazy<Pool> = Lazy::new(|| {
         .expect("Failed to create pool.")
 });
 
-pub static CONFIG_VALUE: Lazy<Value> = Lazy::new(|| {
+pub static CONFIG_VALUE: Lazy<Config> = Lazy::new(|| {
     get_config().expect("Failed to get config")
 });
 
-fn get_config() -> Result<Value, Box<dyn Error>> {
-    let mut config_value: String = String::new();
-    if let Some(val) = env::var("coastguard_config").ok() {
-        println!("Value of coastguard_config: {}", val);
+fn get_config() -> Result<Config, String> {
+    let environment_variable = "lighthouse_config";
+    let mut config_str: String = String::new();
+    if let Some(val) = env::var(environment_variable).ok() {
+        println!("Value of {}: {}", environment_variable, val);
 
-        config_value = val;
+        config_str = val;
     } else {
-        return Err("Missing \"coastguard_config\" environment variable".into());
+        return Err(format!("Missing \"{}\" environment variable", environment_variable).into());
     }
 
-    let config: Value = toml::from_str(&config_value).unwrap();
+    let config_value: Value = toml::from_str(&config_str).unwrap();
+    let config: Config = serde_json::from_value(serde_json::to_value(config_value).expect("Failed to convert config value from toml to serde::json")).expect("Failed to parse config");
 
     Ok(config)
 }
+
+pub static GUARD_HOSTNAME_TO_USE: Lazy<Guard_hostname_to_use> = Lazy::new(|| {
+    build_guard_hostname_to_use().expect("build_guard_hostname_to_use() failed")
+});
 
 #[catch(500)]
 fn internal_error() -> serde_json::Value {
     error_message("server_error", "Internal server error")
 }
 
-#[launch]
-async fn rocket() -> _ {
-    // Bind the TCP listener to the address
-    let addr = "127.0.0.1:8080".to_string();
-    let listener = TcpListener::bind(&addr).await.expect("Failed to bind");
-
-    println!("Listening on: {}", addr);
-
-    // tokio::spawn(async move {
-    //     // Accept incoming connections
-    //     while let Ok((stream, _)) = listener.accept().await {
-    //         tokio::spawn(handle_connection(stream));
-    //     }
-    // });
-    
+async fn rocket() -> Rocket<Build> {
     let figment = rocket::Config::figment();
 
     rocket::custom(figment)
@@ -164,23 +162,15 @@ async fn rocket() -> _ {
         .register("/", catchers![internal_error])
 }
 
-#[rocket::async_trait]
-impl Fairing for Cors {
-    fn info(&self) -> Info {
-        Info {
-            name: "Cross-Origin-Resource-Sharing Fairing",
-            kind: Kind::Response,
-        }
+#[tokio::main]
+async fn main() {
+    env_logger::init();
+
+    if (GUARD_HOSTNAME_TO_USE.use_local_guard == true) {
+        GUARD_HOSTNAME_TO_USE.local_port.expect("Missing GUARD_HOSTNAME_TO_USE.local_port");
+        start_guard(GUARD_HOSTNAME_TO_USE.local_port.unwrap()).await;
     }
 
-    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-        response.set_header(Header::new(
-            "Access-Control-Allow-Methods",
-            "POST, PATCH, PUT, DELETE, HEAD, OPTIONS, GET",
-        ));
-        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-        response.remove_header("server");
-    }
+    log::info!("Starting (Rocket) webserver...");
+    rocket().await.launch().await.expect("Failed to start web server");
 }

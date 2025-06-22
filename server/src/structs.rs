@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use diesel::prelude::*;
 use crate::tables::*;
 use diesel::r2d2::{self, ConnectionManager};
@@ -6,12 +8,65 @@ use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use rocket::serde::json::Json;
 
-type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config {
+    pub metadata: Option<Config_metadata>,
+    pub authentication: Option<Config_authentication>,
+    pub database: Option<Config_database>,
+    pub smtp: Option<Config_smtp>
+}
 
-// #[database("mysql_db")]
-// struct DbConn(MysqlConnection);
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_metadata {
+    pub hostname: Option<Vec<String>>
+}
 
-// Incoming body structs
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_authentication {
+    pub guard: Option<Config_authentication_guard>,
+    pub database: Option<Config_database>,
+    pub smtp: Option<Config_smtp>
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_authentication_guard {
+    pub hostname: Option<String>
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_database {
+    pub mysql: Option<Config_database_mysql>,
+    pub s3: Option<Config_database_s3>
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_database_mysql {
+    pub hostname: Option<String>,
+    pub port: Option<u16>,
+    pub username: Option<String>,
+    pub password_env: Option<String>,
+    pub database: Option<String>
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_database_s3 {
+    pub access_key_id: Option<String>,
+    pub secret_access_key_env: Option<String>,
+    pub endpoint_url: Option<String>,
+    pub region: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Config_smtp {
+    pub host: Option<String>,
+    pub username: Option<String>,
+    pub password_env: Option<String>,
+    pub port: Option<u16>,
+    pub from_alias: Option<String>,
+    pub from_header: Option<String>,
+    pub reply_to_address: Option<String>
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct Login_body {
     pub email: String
@@ -161,35 +216,6 @@ pub struct Request_authentication_output {
     pub account_id: String,
     pub device_id: String,
     pub project_id: String
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Config_sql {
-    pub user: Option<String>,
-    pub device: Option<String>,
-    pub magiclink: Option<String>,
-    pub network: Option<String>,
-    pub process: Option<String>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Config_database_mysql {
-    pub username: Option<String>,
-    pub password_env: Option<String>,
-    pub hostname: Option<String>,
-    pub port: Option<i64>,
-    pub database: Option<String>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Config_smtp {
-    pub host: Option<String>,
-    pub port: Option<i64>,
-    pub username: Option<String>,
-    pub from_alias: Option<String>,
-    pub from_header: Option<String>,
-    pub reply_to_address: Option<String>,
-    pub password_env: Option<String>
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
@@ -606,4 +632,15 @@ pub struct Device {
     pub name: Option<String>,
     pub public_key: String,
     pub created: i64
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Guard_hostname_to_use {
+    pub hostname: Option<String>,
+    pub use_local_guard: bool,
+    pub local_port: Option<u16>
+}
+
+pub struct Headers {
+    pub headers_map: HashMap<String, String>,
 }

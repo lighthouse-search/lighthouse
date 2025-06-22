@@ -19,7 +19,7 @@ export default function Settings() {
     const [user, set_user] = useState(null);
 
     async function run() {
-        let user = await Lighthouse(await credentials_object(router)).account.me();
+        let user = await Lighthouse(credentials_object(router)).account.me();
         user.data.profile_pic = `/profile-pictures/${Math.floor(Math.random() * 5)}.png`;
         set_user(user.data);
     }

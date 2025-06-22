@@ -40,7 +40,7 @@ export default function Query() {
         try {
             // await content_blocked();
             // return;
-            const query_data = await Lighthouse(await credentials_object(router)).query.list(query);
+            const query_data = await Lighthouse(credentials_object(router)).query.list(query);
             set_results(query_data.data);
             set_error(null);
         } catch (error) {

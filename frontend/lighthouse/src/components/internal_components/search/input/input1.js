@@ -18,6 +18,10 @@ export default function Search_Input1(props) {
         if (should_run.current == query) { return; }
         should_run.current = query;
 
+        if (props.autoFocus == true) {
+            document.getElementById("lighthouse_search_bar").focus();
+        }
+
         set_query(query);
     });
 
@@ -42,6 +46,6 @@ export default function Search_Input1(props) {
     let placeholder = "Search";
 
     return (
-        <input {...props.className} className={`search_bar_input ${props.className}`} placeholder={placeholder} value={query} onChange={(e) => { set_query(e.target.value); }} onKeyDown={input_key_down}/>
+        <input {...props.className} id="lighthouse_search_bar" className={`search_bar_input ${props.className}`} placeholder={placeholder} value={query} onChange={(e) => { set_query(e.target.value); }} onKeyDown={input_key_down}/>
     )
 }

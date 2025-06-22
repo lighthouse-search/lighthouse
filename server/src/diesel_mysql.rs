@@ -1,6 +1,9 @@
+pub struct Cors;
+
+use rocket::{options, routes, Response};
 use rocket::response::{Debug, status::Created};
 use rocket::response::status;
-use rocket::http::Status;
+use rocket::http::{Header, Status};
 use rocket::response::status::Custom;
 use rocket::request::{self, Request, FromRequest};
 use rocket::{fairing::{Fairing, Info, Kind}, State};
@@ -15,6 +18,7 @@ use diesel::prelude::*;
 use diesel::sql_types::*;
 
 use std::borrow::{Borrow, BorrowMut};
+use std::collections::HashMap;
 use std::error::Error;
 use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -25,6 +29,7 @@ use std::io::Write;
 
 use rand::prelude::*;
 
+use crate::endpoint::metadata::metadata_urls;
 use crate::global::{ generate_random_id, is_null_or_whitespace, request_authentication };
 use crate::responses::*;
 use crate::structs::*;
@@ -41,6 +46,18 @@ use std::sync::Arc;
 #[options("/<_..>")]
 fn options_handler() -> &'static str {
     ""
+}
+
+pub fn stage() -> AdHoc {
+    AdHoc::on_ignite("Diesel SQLite Stage", |rocket| async {
+        rocket
+        .mount("/api", routes![options_handler])
+        .mount("/api/native-v1/metadata", routes![metadata_urls])
+        .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
+        .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index])
+        .mount("/api/native-v1/account", routes![crate::endpoint::account::account_me, crate::endpoint::account::account_list])
+        .mount("/api/native-v1/admin/index/job", routes![crate::endpoint::admin::index::admin_index_list, crate::endpoint::admin::index::admin_index_update])
+    })
 }
 
 // Returns the current request's ID, assigning one only as necessary.
@@ -61,23 +78,38 @@ impl<'r> FromRequest<'r> for &'r Query_string {
     }
 }
 
-pub fn stage() -> AdHoc {
-    AdHoc::on_ignite("Diesel SQLite Stage", |rocket| async {
-        rocket
-        .mount("/api", routes![options_handler])
-        .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
-        .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index])
-        // .mount("/api/native-v1/issue", routes![crate::endpoint::issue::issue_list, crate::endpoint::issue::issue_update])
-        // .mount("/api/native-v1/event", routes![])
-        // .mount("/api/native-v1/request", routes![])
-        // .mount("/api/native-v1/timing", routes![])
-        // .mount("/api/native-v1/tests", routes![])
-        // .mount("/api/native-v1/discussion", routes![crate::endpoint::discussion::discussion_list, crate::endpoint::discussion::discussion_update])
-        .mount("/api/native-v1/account", routes![crate::endpoint::account::account_me, crate::endpoint::account::account_list])
-        // .mount("/api/native-v1/org", routes![crate::endpoint::org::org_list])
-        // .mount("/api/native-v1/namespace", routes![crate::endpoint::namespace::namespace_list])
-        // .mount("/api/native-v1/project", routes![crate::endpoint::project::project_list])
-        // .mount("/api/native-v1/user-rating", routes![crate::endpoint::user_rating::user_rating_list, crate::endpoint::user_rating::user_rating_update])
-        .mount("/api/native-v1/admin/index/job", routes![crate::endpoint::admin::index::admin_index_list, crate::endpoint::admin::index::admin_index_update])
-    })
+#[rocket::async_trait]
+impl Fairing for Cors {
+    fn info(&self) -> Info {
+        Info {
+            name: "Cross-Origin-Resource-Sharing Fairing",
+            kind: Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, PATCH, PUT, DELETE, HEAD, OPTIONS, GET",
+        ));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        response.remove_header("server");
+    }
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for &'r Headers {
+    type Error = ();
+
+    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        request::Outcome::Success(request.local_cache(|| {
+            let value = request.headers().iter()
+                .map(|header| (header.name.to_string(), header.value.to_string()))
+                .collect::<HashMap<String, String>>();
+
+            Headers { headers_map: value }
+        }))
+    }
 }

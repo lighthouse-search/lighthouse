@@ -17,14 +17,21 @@ export default function Sidebar2(page_props) {
     const should_run = useRef(true);
     const [user, set_user] = useState(null);
     const [notices, set_notices] = useState(null);
+    const [metadata, set_metadata] = useState(null);
 
     const [mini_search, set_mini_search] = useState(false);
 
     async function run() {
-        let user = await Lighthouse(await credentials_object(router)).account.me();
+        let user = await Lighthouse(credentials_object(router)).account.me();
         user.data.profile_pic = `/profile-pictures/${Math.floor(Math.random() * 5)}.png`;
         set_user(user.data);
     }
+
+    async function metadata_get() {
+        const metadata = await Lighthouse({ ... credentials_object(router), fetch_properties: { cache: "reload" } }).metadata.urls();
+        set_metadata(metadata.data);
+    }
+
     useEffect(() => {
         if (typeof window != "undefined" && !window.location.pathname.startsWith("/search") && !window.location.pathname.startsWith("/query")) {
             set_mini_search(true);
@@ -32,6 +39,8 @@ export default function Sidebar2(page_props) {
 
         if (should_run.current != true) { return; }
         should_run.current = false;
+
+        metadata_get();
         run();
     });
 
@@ -41,7 +50,15 @@ export default function Sidebar2(page_props) {
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
             </div>
         );
-    })
+    });
+
+    let guard_url = null;
+    if (metadata && metadata.guard) {
+        let url = new URL(metadata.guard);
+        url.pathname = url.pathname+"/frontend/login";
+        url.searchParams.set("redirect", window.location.href);
+        guard_url = url.href;
+    }
 
     return (
         <div className="sidebar2 column">
@@ -58,7 +75,7 @@ export default function Sidebar2(page_props) {
                     <SidebarButton1 alias="Maps" href="/map" icon="/emojis/1f30e_earthglobeamericas_3d.png"/>
                 </div>
 
-                <div className="right">
+                {credentials_object() != null && <div className="right">
                     <Link href="/admin">Admin</Link>
 
                     {/* {user && <Dropdown icon={<ProfilePic src={user.profile_pic}/>}>
@@ -69,7 +86,11 @@ export default function Sidebar2(page_props) {
 
                     {/* <SidebarButton1 href="/settings" icon="/icons/cogwheel-outline-white.svg"/> */}
                     {/* {mini_search == true && <Search_Input1/>} */}
-                </div>
+                </div>}
+
+                {metadata && credentials_object() == null && <div className="right">
+                    <Link href={guard_url} className="login">Login</Link>
+                </div>}
             </div>
 
             <div className="notices column row_gap_4 scrollY">

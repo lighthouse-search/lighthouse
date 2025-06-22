@@ -9,10 +9,11 @@
 /server/frontend/coverage
 
 # next.js
-/server/frontend/.next/
-/server/frontend/_static/
+/frontend/admin/.next
+/frontend/lighthouse/_static
 
-/server/frontend/public/placeholders
+/frontend/admin/public/placeholders
+/frontend/lighthouse/public/placeholders
 
 # production
 /server/frontend/build
@@ -36,3 +37,5 @@
 /server/frontend/.env.production.local
 server/.DS_Store
 /frontend/admin/_static
+
+/.guard

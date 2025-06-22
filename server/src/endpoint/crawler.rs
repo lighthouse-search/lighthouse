@@ -2,10 +2,11 @@ use rocket::response::{Debug, status::Created};
 use rocket::response::status;
 use rocket::http::Status;
 use rocket::response::status::Custom;
+use rocket::serde::json::Json;
+use rocket::{get, post};
 
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
-use rocket::serde::json::Json;
 
 use diesel::prelude::*;
 use diesel::sql_types::*;

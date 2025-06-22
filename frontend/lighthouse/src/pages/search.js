@@ -14,7 +14,7 @@ export default function Search() {
             {/* <img className="search_bar_background" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2944&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"/> */}
             <div className="search_bar_container">
                 <Logo/>
-                <Search_Input1/>
+                <Search_Input1 autoFocus={true}/>
                 {/* <div className="row column_gap_10 legal">
                     <Link href="/tos" className="greyText">Terms</Link>
                     <Link href="/privacy" className="greyText">Privacy</Link>

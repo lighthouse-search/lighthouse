@@ -8,7 +8,7 @@ export default function Selector1(props) {
   const image_data = useRef(null);
 
   async function upload_image() {
-    const image_upload = await Clubs(await credentials_object()).image().upload_media(image_data.current, props.type);
+    const image_upload = await Clubs(credentials_object()).image().upload_media(image_data.current, props.type);
     if (image_upload[0].error == true) {
       alert(image_data.message);
       return;

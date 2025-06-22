@@ -31,6 +31,9 @@ declare function Lighthouse(credsObject: any): {
             };
         };
     };
+    metadata: {
+        urls: () => Promise<any>;
+    };
     getPlatformApiURLWithoutPathname: typeof getPlatformApiURLWithoutPathname;
 };
 export { Lighthouse, getCreds, OnlyGetAdditionalData };

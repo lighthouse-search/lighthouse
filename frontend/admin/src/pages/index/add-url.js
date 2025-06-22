@@ -19,7 +19,7 @@ export default function Search_AddUrl() {
     });
 
     async function add_urls(url) {
-       const urls = await Lighthouse(await credentials_object(router)).admin.index.job.update({
+       const urls = await Lighthouse(credentials_object(router)).admin.index.job.update({
             actions: [
                 { action: "create", url: url }
             ] 
