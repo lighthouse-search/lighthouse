@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+/.next
+
 # dependencies
 /server/frontend/node_modules
 /server/frontend/.pnp
