@@ -17,21 +17,12 @@ pub mod globals {
 
 pub mod endpoint {
     pub mod account;
-    pub mod discussion;
     pub mod query;
-    pub mod namespace;
-    pub mod org;
     pub mod crawler;
-    pub mod user_rating;
     pub mod metadata;
     pub mod admin {
         pub mod index;
     }
-}
-
-pub mod websocket {
-    // pub mod connection;
-    pub mod event;
 }
 
 pub mod network {
@@ -44,7 +35,6 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::{catch, catchers, Build, Rocket};
 use rocket::{Request, Response, request, request::FromRequest};
-// use websocket::connection::handle_connection;
 
 use std::error::Error;
 use std::fs;

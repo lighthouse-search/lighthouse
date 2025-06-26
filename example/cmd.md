@@ -1,1 +1,0 @@
-export lighthouse_config=$(cat ../example/lighthouse-dev-config.toml) && guard_config=$(cat ../example/guard-dev-config.toml) && export example_user_mysql_password='' && export smtp_password="" && export s3_access_key_id="" && export s3_secret_access_key="" && cargo run
