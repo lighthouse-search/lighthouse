@@ -36,6 +36,8 @@ FROM --platform=linux/amd64 node:latest as build-frontend-stage
 WORKDIR /rover-server
 COPY --from=build-stage /rover-server/frontend/lighthouse /rover-server/frontend/lighthouse
 
+RUN npm install -g yarn
+
 # Build user frontend
 WORKDIR /rover-server/frontend/lighthouse
 RUN yarn
