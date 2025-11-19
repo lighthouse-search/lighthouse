@@ -4,13 +4,11 @@ WORKDIR /rover-server
 
 LABEL org.opencontainers.image.source=https://gitlab.com/oracularhades/guard
 
-COPY Cargo.lock /rover-server/Cargo.lock
-COPY Cargo.toml /rover-server/Cargo.toml
-COPY README.md /rover-server/README.md
-COPY src /rover-server/src
+COPY server/Cargo.lock /rover-server/Cargo.lock
+COPY server/Cargo.toml /rover-server/Cargo.toml
+COPY server/src /rover-server/src
 COPY frontend /rover-server/frontend
-COPY nginx /rover-server/nginx
-COPY start-webservers.sh /rover-server
+COPY libraries /rover-server/libraries
 
 RUN apt update -y
 RUN apt upgrade -y
@@ -40,15 +38,24 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 RUN brew install node
 
-# Build front-end
-WORKDIR /rover-server/frontend
-RUN npm install
+# Install Yarn
+RUN npm install -g yarn
+
+# Build user frontend
+WORKDIR /rover-server/frontend/lighthouse
+RUN yarn
 RUN npm run build
+
+# Build admin front-end
+WORKDIR /rover-server/frontend/admin
+RUN yarn
+RUN npm run build
+
 WORKDIR /rover-server
 
 ENV PATH="/home/linuxbrew/.cargo/bin:${PATH}"
 
-RUN curl -Lo /rover-server/guard.zip https://gitlab.com/oracularhades/guard/-/jobs/artifacts/main/raw/guard.zip?job=build_rust_binary
+RUN curl -Lo /rover-server/guard.zip https://github.com/lighthouse-search/guard/releases/latest/download/guard.zip
 RUN unzip -d /rover-server/guard /rover-server/guard.zip
 # RUN chmod +x /rover-server/guard/rover-server
 
@@ -59,19 +66,18 @@ RUN cargo build --release
 
 # Remove frontend nextjs source files, they just un-necessarily take up lots of space.
 RUN mkdir /rover-server-built/frontend
-RUN mv /rover-server/frontend/_static /rover-server-built/frontend/_static
+RUN mkdir /rover-server-built/frontend/lighthouse
+RUN mkdir /rover-server-built/frontend/admin
+RUN mv /rover-server/frontend/lighthouse/_static /rover-server-built/frontend/lighthouse/_static
+RUN mv /rover-server/frontend/admin/_static /rover-server-built/frontend/admin/_static
 RUN mv /rover-server/target /rover-server-built/target
-RUN mv /rover-server/nginx /rover-server-built/nginx
 RUN mv /rover-server/start-webservers.sh /rover-server-built/start-webservers.sh
-
-# Copy necessary web-server configuration files for Rover and Guard.
-COPY Rocket.toml /rover-server/Rocket.toml
 RUN mv /rover-server/Rocket.toml /rover-server-built/Rocket.toml
 
 # This is about to get moved with the /rover-server/guard folder to /rover-server-built/guard, so we have no need to move it here.
-COPY ./guard/Rocket.toml /rover-server/guard/Rocket.toml
+COPY server/guard/guard-config.toml /rover-server/guard/guard-config.toml
+COPY server/guard/Rocket.toml /rover-server/guard/Rocket.toml
 
-COPY guard/guard-config.toml /rover-server/guard/guard-config.toml
 RUN mv /rover-server/guard /rover-server-built/guard
 
 WORKDIR /
@@ -102,22 +108,15 @@ RUN usermod -s /bin/rbash kube
 # RUN chown -R kube /home/kube/.msmtp-password.gpg
 
 # Expose port 80 for the web server
-EXPOSE 80
+EXPOSE 4459
 
 # Remove libcap2-bin and clean up apt cache
 RUN apt remove -y libcap2-bin
 RUN apt autoremove -y
 RUN apt clean
 
-RUN apt-get install nginx -y
-RUN chown -R kube /var/lib/nginx
-RUN chown -R kube /var/log/nginx
-
 RUN chmod +x /rover-server/guard/guard-server
 RUN chmod +x /rover-server/start-webservers.sh
-
-# Set the capability to bind to port 80 for the cargo binary
-RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
 
 RUN tree /rover-server
 
