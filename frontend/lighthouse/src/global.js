@@ -1,3 +1,5 @@
+"use client"
+
 function credentials_object(router, fetch_properties) {
     let auth_data = null;
     if (typeof localStorage != "undefined") {
