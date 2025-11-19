@@ -102,8 +102,6 @@ EXPOSE 4459
 
 # Remove libcap2-bin and clean up apt cache
 RUN apt remove -y libcap2-bin
-RUN apt autoremove -y
-RUN apt clean
 
 RUN chmod +x /rover-server/guard/guard-server
 RUN chmod +x /rover-server/start-webservers.sh
