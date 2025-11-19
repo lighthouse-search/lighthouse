@@ -87,11 +87,14 @@ COPY --from=build-finalise-stage /rover-server /rover-server
 RUN apt update
 RUN apt install -y libcap2-bin default-mysql-client dnsutils tree
 
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+RUN brew install node
+
 # Add a non-root user kube with restricted shell
 RUN adduser kube --disabled-login
 RUN usermod -s /bin/rbash kube
 
-# Expose port 80 for the web server
+# Expose port 4459 for the web server
 EXPOSE 4459
 
 # Remove libcap2-bin and clean up apt cache
