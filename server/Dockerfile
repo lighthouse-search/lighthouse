@@ -110,6 +110,8 @@ RUN chown -R linuxbrew /var/log/nginx
 # Expose port 80 for NGINX
 EXPOSE 80
 
+RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
+
 RUN chmod +x /rover-server/guard/guard-server
 RUN chmod +x /rover-server/start-webservers.sh
 
