@@ -1,6 +1,8 @@
 function credentials_object(router, fetch_properties) {
-    if (typeof localStorage == "undefined") { return null; }
-    const auth_data = typeof localStorage != "undefined" ? JSON.parse(localStorage.getItem("auth")) : null;
+    let auth_data = null;
+    if (typeof localStorage != "undefined") {
+        auth_data = JSON.parse(localStorage.getItem("auth"));
+    }
   
     if (!auth_data) {
         console.log("No auth data found.");
