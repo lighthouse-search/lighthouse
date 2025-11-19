@@ -46,10 +46,10 @@ WORKDIR /rover-server/frontend/lighthouse
 RUN yarn
 RUN npm run build
 
-# Build admin front-end
-WORKDIR /rover-server/frontend/admin
-RUN yarn
-RUN npm run build
+# # Build admin front-end
+# WORKDIR /rover-server/frontend/admin
+# RUN yarn
+# RUN npm run build
 
 WORKDIR /rover-server
 
