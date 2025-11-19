@@ -9,6 +9,7 @@ COPY server/Cargo.toml /rover-server/Cargo.toml
 COPY server/start-webservers.sh /rover-server/start-webservers.sh
 COPY server/Rocket.toml /rover-server/Rocket.toml
 COPY server/guard /rover-server/guard
+COPY server/nginx /rover-server/nginx
 COPY server/src /rover-server/src
 COPY frontend /rover-server/frontend
 COPY libraries /rover-server/libraries
@@ -67,6 +68,7 @@ RUN mv /rover-server/frontend/lighthouse/_static /rover-server-built/frontend/li
 RUN mv /rover-server/target /rover-server-built/target
 RUN mv /rover-server/start-webservers.sh /rover-server-built/start-webservers.sh
 RUN mv /rover-server/Rocket.toml /rover-server-built/Rocket.toml
+RUN mv /rover-server/nginx /rover-server-built/nginx
 
 COPY server/guard/guard-config.toml /rover-server/guard/guard-config.toml
 RUN mv /rover-server/guard /rover-server-built/guard
