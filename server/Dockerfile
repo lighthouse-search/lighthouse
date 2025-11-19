@@ -21,7 +21,6 @@ RUN useradd -m -s /bin/bash linuxbrew && \
     chown -R linuxbrew:linuxbrew /rover-server/* && \
     chown -R linuxbrew:linuxbrew /rover-server
 
-RUN mkdir /rover-server-built
 RUN chown -R linuxbrew /rover-server-built
 
 RUN chown -R linuxbrew /rover-server
@@ -58,6 +57,7 @@ RUN cargo update
 RUN cargo build --release
 
 # Remove frontend nextjs source files, they just un-necessarily take up lots of space.
+RUN mkdir /rover-server-built
 RUN mkdir /rover-server-built/frontend
 RUN mkdir /rover-server-built/frontend/lighthouse
 RUN mkdir /rover-server-built/frontend/admin
