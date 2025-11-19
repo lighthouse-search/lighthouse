@@ -100,9 +100,6 @@ USER root
 # Expose port 4459 for the web server
 EXPOSE 4459
 
-# Remove libcap2-bin and clean up apt cache
-RUN apt remove -y libcap2-bin
-
 RUN chmod +x /rover-server/guard/guard-server
 RUN chmod +x /rover-server/start-webservers.sh
 
