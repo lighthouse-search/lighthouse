@@ -21,8 +21,6 @@ RUN useradd -m -s /bin/bash linuxbrew && \
     chown -R linuxbrew:linuxbrew /rover-server/* && \
     chown -R linuxbrew:linuxbrew /rover-server
 
-RUN chown -R linuxbrew /rover-server-built
-
 RUN chown -R linuxbrew /rover-server
 RUN chown -R linuxbrew /rover-server/frontend
 
