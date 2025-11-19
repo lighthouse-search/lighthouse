@@ -66,13 +66,13 @@ export default function Sidebar2(page_props) {
                 <div className="left">
                     <Logo/>
                     {/* <SidebarButton1 alias="Search" href="/search" icon="/emojis/1f453_glasses_3d.png"/> */}
-                    <SidebarButton1 alias="E-mail" href="/email" icon="/emojis/1f4e7_email_3d.png"/>
+                    {/* <SidebarButton1 alias="E-mail" href="/email" icon="/emojis/1f4e7_email_3d.png"/>
                     <SidebarButton1 alias="Calendar" href="/email" icon="/emojis/1f4c5_calendar_3d.png"/>
-                    <SidebarButton1 alias="Your Stuff" href="/your-stuff" icon="/emojis/1f5c3_cardfilebox_3d.png"/>
+                    <SidebarButton1 alias="Your Stuff" href="/your-stuff" icon="/emojis/1f5c3_cardfilebox_3d.png"/> */}
                     {/* <SidebarButton1 alias="Calendar" href="/calendar" icon="/emojis/1f4c5_calendar_3d.png"/> */}
                     {/* <SidebarButton1 alias="Documents" href="/documents" icon="/emojis/1f4d3_notebook_3d.png"/> */}
                     {/* <SidebarButton1 alias="Storage" href="/storage" icon="/emojis/1f4c1_filefolder_3d.png"/> */}
-                    <SidebarButton1 alias="Maps" href="/map" icon="/emojis/1f30e_earthglobeamericas_3d.png"/>
+                    {/* <SidebarButton1 alias="Maps" href="/map" icon="/emojis/1f30e_earthglobeamericas_3d.png"/> */}
                 </div>
 
                 {credentials_object() != null && <div className="right">
