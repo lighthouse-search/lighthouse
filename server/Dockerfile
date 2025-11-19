@@ -60,7 +60,7 @@ RUN mkdir /rover-server-built/frontend
 RUN mkdir /rover-server-built/frontend/lighthouse
 RUN mkdir /rover-server-built/frontend/admin
 RUN mv /rover-server/frontend/lighthouse/_static /rover-server-built/frontend/lighthouse/_static
-RUN mv /rover-server/frontend/admin/_static /rover-server-built/frontend/admin/_static
+# RUN mv /rover-server/frontend/admin/_static /rover-server-built/frontend/admin/_static
 RUN mv /rover-server/target /rover-server-built/target
 RUN mv /rover-server/start-webservers.sh /rover-server-built/start-webservers.sh
 RUN mv /rover-server/Rocket.toml /rover-server-built/Rocket.toml
