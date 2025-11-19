@@ -104,6 +104,7 @@ RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.co
 RUN brew install node
 USER root
 
+RUN chown -R linuxbrew /var/lib/nginx
 RUN chown -R linuxbrew /var/log/nginx
 
 # Expose port 80 for NGINX
