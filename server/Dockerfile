@@ -6,6 +6,7 @@ LABEL org.opencontainers.image.source=https://gitlab.com/oracularhades/guard
 
 COPY server/Cargo.lock /rover-server/Cargo.lock
 COPY server/Cargo.toml /rover-server/Cargo.toml
+COPY server/start-webservers.sh /rover-server/start-webservers.sh
 COPY server/src /rover-server/src
 COPY frontend /rover-server/frontend
 COPY libraries /rover-server/libraries
