@@ -92,6 +92,7 @@ RUN adduser linuxbrew --disabled-login
 RUN usermod -s /bin/rbash linuxbrew
 
 USER linuxbrew
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 RUN brew install node
 USER root
