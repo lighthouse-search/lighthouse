@@ -32,28 +32,19 @@ USER linuxbrew
 # Set environment variables for Homebrew
 ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
 
-# I don't think this is needed.
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-RUN brew install node
-
-# Install Yarn
-RUN npm install -g yarn
+FROM --platform=linux/amd64 node:latest as build-frontend-stage
+WORKDIR /rover-server
+COPY --from=build-stage /rover-server/frontend/lighthouse /rover-server/frontend/lighthouse
 
 # Build user frontend
 WORKDIR /rover-server/frontend/lighthouse
 RUN yarn
 RUN npm run build
 
-# # Build admin front-end
-# WORKDIR /rover-server/frontend/admin
-# RUN yarn
-# RUN npm run build
+FROM --platform=linux/amd64 rust:latest as build-finalise-stage
+COPY --from=build-frontend-stage /rover-server/frontend/lighthouse /rover-server/frontend/lighthouse
 
 WORKDIR /rover-server
-
-ENV PATH="/home/linuxbrew/.cargo/bin:${PATH}"
 
 RUN curl -Lo /rover-server/guard.zip https://github.com/lighthouse-search/guard/releases/latest/download/guard.zip
 RUN unzip -d /rover-server/guard /rover-server/guard.zip
@@ -61,7 +52,7 @@ RUN unzip -d /rover-server/guard /rover-server/guard.zip
 
 # Update crates
 RUN cargo update
-# Build
+# Build server
 RUN cargo build --release
 
 # Remove frontend nextjs source files, they just un-necessarily take up lots of space.
@@ -96,13 +87,6 @@ RUN apt install -y libcap2-bin default-mysql-client dnsutils tree
 # Add a non-root user kube with restricted shell
 RUN adduser kube --disabled-login
 RUN usermod -s /bin/rbash kube
-
-# RUN echo "defaults\nauth on\ntls on\ntls_starttls on\n\naccount smtp\nhost $smtp_host\nport $smtp_port\nfrom $smtp_from_header\nuser $smtp_username\npassword $smtp_password\n\n# Set default\naccount default : smtp" > /home/kube/.msmtprc
-# RUN chown -R kube /home/kube/.msmtprc
-# RUN chmod 600 /home/kube/.msmtprc
-
-# RUN echo $smtp_password > /home/kube/.msmtp-password.gpg
-# RUN chown -R kube /home/kube/.msmtp-password.gpg
 
 # Expose port 80 for the web server
 EXPOSE 4459
