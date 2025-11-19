@@ -74,7 +74,7 @@ RUN mv /rover-server/target /rover-server-built/target
 RUN mv /rover-server/start-webservers.sh /rover-server-built/start-webservers.sh
 RUN mv /rover-server/Rocket.toml /rover-server-built/Rocket.toml
 
-COPY guard/guard-config.toml /rover-server/guard/guard-config.toml
+COPY server/guard/guard-config.toml /rover-server/guard/guard-config.toml
 RUN mv /rover-server/guard /rover-server-built/guard
 
 WORKDIR /
