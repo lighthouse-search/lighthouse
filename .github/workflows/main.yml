@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
