@@ -78,7 +78,7 @@ USER linuxbrew
 FROM --platform=linux/amd64 rust:latest as production-stage
 WORKDIR /rover-server
 
-COPY --from=build-stage /rover-server /rover-server
+COPY --from=build-finalise-stage /rover-server /rover-server
 
 # Install libcap2-bin for setting capabilities
 RUN apt update
