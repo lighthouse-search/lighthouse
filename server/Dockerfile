@@ -97,8 +97,8 @@ RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.co
 RUN brew install node
 USER root
 
-# Expose port 4459 for the web server
-EXPOSE 4459
+# Expose port 80 for NGINX
+EXPOSE 80
 
 RUN chmod +x /rover-server/guard/guard-server
 RUN chmod +x /rover-server/start-webservers.sh
