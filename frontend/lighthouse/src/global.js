@@ -1,8 +1,6 @@
-"use client"
-
 function credentials_object(router, fetch_properties) {
     let auth_data = null;
-    if (typeof localStorage != "undefined") {
+    if (typeof window != "undefined") {
         auth_data = JSON.parse(localStorage.getItem("auth"));
     }
   

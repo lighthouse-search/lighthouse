@@ -41,3 +41,4 @@ server/.DS_Store
 /frontend/admin/_static
 
 /.guard
+/frontend/lighthouse/.next

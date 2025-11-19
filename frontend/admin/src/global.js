@@ -1,5 +1,5 @@
 function credentials_object(router, fetch_properties) {
-    if (typeof localStorage === "undefined") {
+    if (typeof window === "undefined") {
         console.log("LocalStorage is not available.");
         return null;
     }
