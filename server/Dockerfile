@@ -88,10 +88,10 @@ RUN apt update
 RUN apt install -y libcap2-bin default-mysql-client dnsutils tree
 
 # Add a non-root user kube with restricted shell
-RUN adduser kube --disabled-login
-RUN usermod -s /bin/rbash kube
+RUN adduser linuxbrew --disabled-login
+RUN usermod -s /bin/rbash linuxbrew
 
-USER kube
+USER linuxbrew
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 RUN brew install node
 USER root
@@ -109,6 +109,6 @@ RUN chmod +x /rover-server/start-webservers.sh
 
 RUN tree /rover-server
 
-# Run the application as kube user
-USER kube
+# Run the application as linuxbrew user
+USER linuxbrew
 CMD export guard_config=$(cat /rover-server/guard/guard-config.toml) & /rover-server/start-webservers.sh
