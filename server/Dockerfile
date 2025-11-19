@@ -43,6 +43,7 @@ RUN yarn
 RUN npm run build
 
 FROM --platform=linux/amd64 rust:latest as build-finalise-stage
+COPY --from=build-stage /rover-server /rover-server
 COPY --from=build-frontend-stage /rover-server/frontend/lighthouse /rover-server/frontend/lighthouse
 
 WORKDIR /rover-server
