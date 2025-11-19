@@ -156,10 +156,10 @@ async fn rocket() -> Rocket<Build> {
 async fn main() {
     env_logger::init();
 
-    if (GUARD_HOSTNAME_TO_USE.use_local_guard == true) {
-        GUARD_HOSTNAME_TO_USE.local_port.expect("Missing GUARD_HOSTNAME_TO_USE.local_port");
-        start_guard(GUARD_HOSTNAME_TO_USE.local_port.unwrap()).await;
-    }
+    // if (GUARD_HOSTNAME_TO_USE.use_local_guard == true) {
+    //     GUARD_HOSTNAME_TO_USE.local_port.expect("Missing GUARD_HOSTNAME_TO_USE.local_port");
+    //     start_guard(GUARD_HOSTNAME_TO_USE.local_port.unwrap()).await;
+    // }
 
     log::info!("Starting (Rocket) webserver...");
     rocket().await.launch().await.expect("Failed to start web server");
