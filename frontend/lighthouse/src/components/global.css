@@ -370,3 +370,7 @@ a {
 .underline {
   text-decoration: underline;
 }
+
+.text_center {
+  text-align: center;
+}

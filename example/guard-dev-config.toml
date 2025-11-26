@@ -31,8 +31,8 @@ host="smtp.sendgrid.net"
 port=587
 username="apikey"
 from_alias="Health"
-from_header="noreply@paperplane.motionfans.com"
-reply_to_address="noreply@paperplane.motionfans.com"
+from_header="noreply@paperplane.example.com"
+reply_to_address="noreply@paperplane.example.com"
 password_env="smtp_password"
 
 [captcha.hcaptcha.login_page]

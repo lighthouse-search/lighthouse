@@ -99,7 +99,8 @@ pub struct Crawler_index_body_action_content {
     pub title: Option<String>,
     pub text: Option<String>,
     pub urls: Option<Vec<String>>,
-    pub metatag: Option<Value>
+    pub metatag: Option<Value>,
+    pub linktag: Option<HashMap<String, Vec<String>>>
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -301,252 +302,33 @@ impl From<Accounts> for Accounts_me {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName)]
 #[serde(crate = "rocket::serde")]
-#[diesel(table_name = discussions)]
-pub struct Discussions {
-    pub message_id: String,
-    pub discussion: String,
-    pub author: String,
-    pub content: Option<String>,
-    pub attachments: Option<String>,
-    pub created: Option<i64>,
-    pub project: String,
-    pub nonce: Option<String>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Discussions_public {
-    pub message_id: String,
-    pub discussion: String,
-    pub author: Accounts_admin,
-    pub content: Option<String>,
-    pub attachments: Option<String>,
-    pub created: Option<i64>,
-    pub nonce: Option<String>
-}
-
-impl From<(Discussions, Accounts)> for Discussions_public {
-    fn from((discussions, author): (Discussions, Accounts)) -> Self {
-        Discussions_public {
-            message_id: discussions.message_id,
-            discussion: discussions.discussion,
-            author: author.into(),
-            content: discussions.content,
-            attachments: discussions.attachments,
-            created: discussions.created,
-            nonce: discussions.nonce,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = user_rating)]
-pub struct User_rating {
-    pub id: String,
-    pub emoji: String,
-    pub author: String,
-    pub project: String,
-    pub created: Option<i64>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct User_rating_public {
-    pub id: String,
-    pub emoji: String,
-    pub author: Accounts_admin,
-    pub project: String,
-    pub created: Option<i64>
-}
-
-impl From<(User_rating, Accounts)> for User_rating_public {
-    fn from((user_rating, author): (User_rating, Accounts)) -> Self {
-        User_rating_public {
-            id: user_rating.id,
-            emoji: user_rating.emoji,
-            author: author.into(),
-            project: user_rating.project,
-            created: user_rating.created
-        }
-    }
+#[diesel(table_name = crawler_queue)]
+pub struct Crawler_queue {
+    pub id: i64,
+    pub url: Option<String>,
+    pub referrer: Option<String>,
+    pub status: Option<String>,
+    pub crawling_node: Option<String>,
+    pub crawling_since: Option<i64>,
+    pub created: i64
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
 #[serde(crate = "rocket::serde")]
-#[diesel(table_name = issue)]
-pub struct Issue {
+#[diesel(table_name = device)]
+pub struct Device {
     pub id: String,
-    pub title: Option<String>,
-    pub created: Option<i64>,
-    pub project: String,
-    pub discussion: Option<String>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Issue_public {
-    pub id: String,
-    pub title: Option<String>,
-    pub created: Option<i64>,
-    pub project: Project_public,
-    pub discussion: Option<String>
-}
-
-impl From<(Issue, Project, Namespace, Org)> for Issue_public {
-    fn from((issue, project, namespace, org): (Issue, Project, Namespace, Org)) -> Self {
-        Issue_public {
-            id: issue.id,
-            title: issue.title,
-            created: issue.created,
-            project: (project, namespace, org).into(),
-            discussion: issue.discussion,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = bug)]
-pub struct Bug {
-    pub id: String,
-    pub author: String,
-    pub title: Option<String>,
-    pub created: Option<i64>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = project)]
-pub struct Project {
-    pub id: String,
-    pub namespace: String,
+    pub account_id: String,
     pub name: Option<String>,
-    pub icon: Option<String>,
-    pub created: Option<i64>
+    pub public_key: String,
+    pub created: i64
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Project_public {
-    pub id: String,
-    pub namespace: Namespace_public,
-    pub name: Option<String>,
-    pub icon: Option<String>,
-    pub created: Option<i64>
+#[derive(Debug, Clone, Deserialize)]
+pub struct UrlQueue {
+    pub url: String,
+    pub referrer: String,
 }
-
-impl From<(Project, Namespace, Org)> for Project_public {
-    fn from((project, namespace, org): (Project, Namespace, Org)) -> Self {
-        Project_public {
-            id: project.id,
-            namespace: (namespace, org).into(),
-            name: project.name,
-            icon: Some(project.icon.unwrap_or("/default-pfp.png".to_string())),
-            created: project.created,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = namespaces)]
-pub struct Namespace {
-    pub id: String,
-    pub org: String,
-    pub name: Option<String>,
-    pub icon: Option<String>,
-    pub created: Option<i64>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Namespace_public {
-    pub id: String,
-    pub org: Org_public,
-    pub name: Option<String>,
-    pub icon: Option<String>,
-    pub created: Option<i64>
-}
-
-impl From<(Namespace, Org)> for Namespace_public {
-    fn from((namespace, org): (Namespace, Org)) -> Self {
-        Namespace_public {
-            id: namespace.id,
-            org: org.into(),
-            name: namespace.name,
-            icon: Some(namespace.icon.unwrap_or("/default-pfp.png".to_string())),
-            created: namespace.created,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = orgs)]
-pub struct Org {
-    pub id: String,
-    pub name: Option<String>,
-    pub icon: Option<String>,
-    pub created: Option<i64>
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Org_public {
-    pub id: String,
-    pub name: Option<String>,
-    pub icon: Option<String>,
-    pub created: Option<i64>
-}
-
-impl From<Org> for Org_public {
-    fn from((org): (Org)) -> Self {
-        Org_public {
-            id: org.id,
-            name: org.name,
-            icon: Some(org.icon.unwrap_or("/default-pfp.png".to_string())),
-            created: org.created,
-        }
-    }
-}
-
-// #[derive(Debug, Clone, Deserialize, Serialize)]
-// pub struct Rover_users_data_for_admins {
-//     pub id: String,
-//     pub first_name: Option<String>,
-//     pub last_name: Option<String>,
-//     pub email: Option<String>,
-//     pub permission: Option<i64>,
-//     pub suspended: Option<bool>
-// }
-
-// #[derive(Debug, Clone, Deserialize, Serialize)]
-// pub struct Rover_network_data_for_admins {
-//     pub device: Option<Rover_devices_data_for_admins>,
-//     pub user: Option<Rover_users_data_for_admins>,
-//     pub domain: String,
-//     pub ip_address: String,
-//     pub destination_country: String,
-//     pub destination_registrant: String,
-//     pub protocol: String,
-//     pub size: Option<i64>,
-//     pub info: String,
-//     pub created: Option<i64>,
-// }
-
-// impl From<(Rover_network, Option<Rover_devices>, Option<Rover_users>)> for Rover_network_data_for_admins {
-//     fn from((network, device, user): (Rover_network, Option<Rover_devices>, Option<Rover_users>)) -> Self {
-//         Rover_network_data_for_admins {
-//             device: device.map(|d| {
-//                 Rover_devices_data_for_admins::from((d, user.clone()))
-//             }),
-//             user: user.map(|d| d.into()),
-//             domain: network.domain,
-//             ip_address: network.ip_address,
-//             destination_country: network.destination_country,
-//             destination_registrant: network.destination_registrant,
-//             protocol: network.protocol,
-//             size: network.size,
-//             info: network.info,
-//             created: network.created
-//         }
-//     }
-// }
 
 // Websocket_event_process
 #[derive(Debug, Clone, Deserialize)]
@@ -623,16 +405,16 @@ pub struct Websocket_event {
     pub _hades_websocket: Option<Websocket_event_hades_websocket>
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
-#[diesel(table_name = device)]
-pub struct Device {
-    pub id: String,
-    pub account_id: String,
-    pub name: Option<String>,
-    pub public_key: String,
-    pub created: i64
-}
+// #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
+// #[serde(crate = "rocket::serde")]
+// #[diesel(table_name = device)]
+// pub struct Device {
+//     pub id: String,
+//     pub account_id: String,
+//     pub name: Option<String>,
+//     pub public_key: String,
+//     pub created: i64
+// }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Guard_hostname_to_use {

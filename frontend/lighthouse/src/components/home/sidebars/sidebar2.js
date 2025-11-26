@@ -88,9 +88,9 @@ export default function Sidebar2(page_props) {
                     {/* {mini_search == true && <Search_Input1/>} */}
                 </div>}
 
-                {metadata && credentials_object() == null && <div className="right">
+                {/* {metadata && credentials_object() == null && <div className="right">
                     <Link href={guard_url} className="login">Login</Link>
-                </div>}
+                </div>} */}
             </div>
 
             <div className="notices column row_gap_4 scrollY">

@@ -49,3 +49,10 @@
 .search_bar_container .legal {
     font-size: 14px;
 }
+
+.search_container .query_search_bar_input {
+    width: 600px;
+    /* width: 100%; */
+    padding: 14px;
+    font-size: 14px;
+}

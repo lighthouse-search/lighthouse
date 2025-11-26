@@ -43,3 +43,6 @@ server/.DS_Store
 /.guard
 /frontend/lighthouse/.next
 frontend/lighthouse/certificates/localhost-key.pem
+
+.DS_Store
+/example/dev

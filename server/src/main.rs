@@ -11,8 +11,6 @@ mod guard;
 
 pub mod globals {
     pub mod environment_variables;
-    pub mod user_rating;
-    pub mod discussion;
 }
 
 pub mod endpoint {
@@ -146,6 +144,7 @@ fn internal_error() -> serde_json::Value {
 async fn rocket() -> Rocket<Build> {
     let figment = rocket::Config::figment();
 
+    println!("PORT");
     rocket::custom(figment)
         .attach(Cors)
         .attach(diesel_mysql::stage())

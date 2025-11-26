@@ -52,13 +52,6 @@
     font-size: 20px;
 }
 
-.query_search_bar_input {
-    width: 600px;
-    /* width: 100%; */
-    padding: 14px;
-    font-size: 14px;
-}
-
 .reached_the_end {
     font-family: monospace;
 }

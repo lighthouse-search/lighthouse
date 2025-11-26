@@ -103,9 +103,3 @@
     overflow-y: scroll;
     overflow-x: hidden;
 } */
-
-.query_search_bar_input {
-    width: 600px;
-    padding: 14px;
-    font-size: 14px;
-}

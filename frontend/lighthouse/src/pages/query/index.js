@@ -15,12 +15,13 @@ import { credentials_object } from "@/global";
 import { useRouter } from "next/router";
 import Loading from "@/components/navigating/in-progress/loading";
 import Illegal_content from "./display/illegal-content";
-import Backdrop_content from "@/components2/rows/backdrop/backdrop_content";
+import Backdrop_content from "@/components/rows/backdrop/backdrop_content";
 
 export default function Query() {
     const router = useRouter();
     const should_run = useRef(true);
     const [results, set_results] = useState(null);
+    const [stats, set_stats] = useState(null);
     const [users, set_users] = useState([]);
     const [error, set_error] = useState(null);
     const [is_content_blocked, set_is_content_blocked] = useState(false);
@@ -42,6 +43,7 @@ export default function Query() {
             // return;
             const query_data = await Lighthouse(credentials_object(router)).query.list(query);
             set_results(query_data.data);
+            set_stats(query_data.stats);
             set_error(null);
         } catch (error) {
             set_error(error);
@@ -66,6 +68,19 @@ export default function Query() {
         get_user();
     });
 
+    const Right = ((props) => {
+        return (
+            <div className="column row_gap_8">
+                {/* <InfoCard/> */}
+                <div className="row column_gap_4">
+                    <Link href="#" className="font_size_12 greyText">Search transparency</Link>
+                    <p className="font_size_12 greyText">• </p>
+                    {stats && <p className="font_size_12 greyText">{stats.total} results in {stats.took}ms</p>}
+                </div>
+            </div>
+        )
+    });
+
     const Search_base = ((props) => {
         return (
             <Home1 className="query_search_container">
@@ -74,7 +89,7 @@ export default function Query() {
                         <div className="query_search_bar_container">
                             {/* <Logo/> */}
                             <Search_Input1 on_search={(value) => { run(value); }} className="query_search_bar_input"/>
-                            <Button_with_icon icon="/icons/filter1.svg"/>
+                            {/* <Button_with_icon icon="/icons/filter1.svg"/> */}
                         </div>
 
                         <div className="query_search_results row_gap_6">
@@ -83,7 +98,7 @@ export default function Query() {
                     </div>
 
                     <div className="column row_gap_6">
-                        {props.right}
+                        <Right/>
                     </div>
                 </div>
             </Home1>
@@ -118,9 +133,8 @@ export default function Query() {
     if (results.length == 0) {
         return (
             <Search_base>
-                <div className="row_gap_2">
-                    <h2>404</h2>
-                    <p>Sorry, we couldn't find any results.</p>
+                <div className="row row_gap_2">
+                    <p className="greyText width_100 text_center">Sorry, we couldn't find any results.</p>
 
                     {/* <p>We searched under the bed,<br/>
  we searched under the chair,<br/>
@@ -143,49 +157,13 @@ it's just not there.</p><br/> */}
         </div>
     });
 
-    const Right = ((props) => {
-        return (
-            <div className="column row_gap_8">
-                <div className="query_profile column outline">
-                    <div className="images row align_items_unset column_gap_4 scrollX">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Pulitzer2018-portraits-kendrick-lamar.jpg/1024px-Pulitzer2018-portraits-kendrick-lamar.jpg"/>
-                        <img src="https://imgs.search.brave.com/86p6yc23N7UWsof17XgH_ecFV0bpYOw7dZX6wH0mbxY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zMS50/aWNrZXRtLm5ldC9k/YW0vYS85ZjMvOWIy/OGU2M2EtNDY3Yi00/YmNjLWI4NmUtMDk5/MDM3Mjc4OWYzXzE2/OTUxNDFfUkVUSU5B/X1BPUlRSQUlUXzNf/Mi5qcGc"/>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Pulitzer2018-portraits-kendrick-lamar.jpg/1024px-Pulitzer2018-portraits-kendrick-lamar.jpg"/>
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Pulitzer2018-portraits-kendrick-lamar.jpg/1024px-Pulitzer2018-portraits-kendrick-lamar.jpg"/>
-                    </div>
-                    <div className="information column row_gap_6">
-                        <div className="column row_gap_6">
-                            <h2>Kendrick Lamar</h2>
-                            <p className="description font_size_14">Kendrick Lamar Duckworth is an American rapper. Regarded as one of the most influential hip-hop artists of his generation, and one of the greatest rappers of all time, he was awarded the 2018 Pulitzer Prize for Music, becoming the first musician outside of the classical and jazz genres to receive the honor. -- <Link href="https://example.com">Wikipedia</Link></p>
-                        </div>
-                        
-                        <p className="font_size_14"><b>Born</b>	Kendrick Lamar Duckworth June 17, 1987 (age 37) Compton, California, U.S.</p>
-                    </div>
-                </div>
-
-                <Link href="#" className="font_size_12 greyText">Search transparency</Link>
-            </div>
-        )
-    });
-
     return (
         <Search_base right={<Right/>}>
             {/* <p className="do_you_mean greyText">Do you mean <Link href={search_builder("skeet")} className="hover_underline">skeet</Link>, <Link href={search_builder("poasting")} className="hover_underline">poasting</Link>?</p> */}
-            <p className="do_you_mean greyText">Suggested: <Link href={search_builder("beans")} className="hover_underline">beans</Link></p>
+            {/* <p className="do_you_mean greyText">Suggested: <Link href={search_builder("beans")} className="hover_underline">beans</Link></p> */}
             {/* <p className="do_you_mean greyText">Took: </p> */}
             <div className="column row_gap_6">
-                <Backdrop_content header="AI Answer" description={<p>Generated by ChatGPT. Answers may be incorect.</p>}>
-                    <div className="typewriter column row_gap_4">
-                        <p>In the U.S., fall (autumn) 2025 begins on Monday, September 22, 2025, and ends on Sunday, December 21, 2025, based on the astronomical seasons.
-
-However, meteorological fall (used for weather and climate purposes) runs from September 1 to November 30 each year.</p>
-                        <div className="row column_gap_4">
-                            <input className="width_100" placeholder="Start typing..." />
-                            <Button_with_icon icon="/icons/file-regular.svg"/>
-                            <Button_with_icon style={{ padding: 4 }} icon_style={{ width: 28, height: 28 }} icon="/icons/send-outline.svg"/>
-                        </div>
-                    </div>
-                </Backdrop_content>
+                {/* <AI_Search1/> */}
                 {/* <div className="outline">
                     <div className="row column_gap_4">
                         <img src="https://bsky.app/static/favicon-32x32.png"/>

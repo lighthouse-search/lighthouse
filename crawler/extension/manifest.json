@@ -1,0 +1,22 @@
+{
+
+  "manifest_version": 3,
+  "name": "Lighthouse Crawler",
+  "version": "1.0",
+  "homepage_url": "https://github.com/mdn/webextensions-examples/tree/master/borderify",
+  "icons": {
+    "48": "icons/border-48.png"
+  },
+
+  "host_permissions": [
+    "http://example.com/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["http://example.com/*", "https://en.wikipedia.org/*", "https://bsky.app/*"],
+      "js": ["borderify.js"]
+    }
+  ]
+
+}
