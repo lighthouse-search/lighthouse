@@ -92,7 +92,7 @@ export default function Query() {
                             {/* <Button_with_icon icon="/icons/filter1.svg"/> */}
                         </div>
 
-                        <div className="query_search_results row_gap_6">
+                        <div className={`query_search_results row_gap_6 ${props.className}`}>
                             {props.children}
                         </div>
                     </div>

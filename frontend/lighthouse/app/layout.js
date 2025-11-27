@@ -1,3 +1,4 @@
+import "../src/components/global.css";
 import { Roboto } from 'next/font/google';
 import Head from 'next/head';
 

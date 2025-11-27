@@ -81,8 +81,7 @@ window.onload = function() {
     // setTimeout(() => { console.log("HTML", document.documentElement.outerHTML); }, 5000);
     // setTimeout(() => { console.log("HTML", document.body.innerText); }, 5000);
     setTimeout(async () => {
-        this.alert("LOADED!");
-        console.log("test ", document.querySelectorAll('main'));
+        // console.log("test ", document.querySelectorAll('main'));
 
         const urls = await get_page_urls(document.body.textContent);
         const response = await fetch("http://127.0.0.1:4459/api/native-v1/crawler/index", {
@@ -107,7 +106,9 @@ window.onload = function() {
             })
         });
 
-        console.log("RESPONSE", response.status);
-        console.log("URLS", urls);
+        // console.log("RESPONSE", response.status);
+        // console.log("URLS", urls);
+
+        this.document.location.href = "about:blank";
     }, 5000);
 };
