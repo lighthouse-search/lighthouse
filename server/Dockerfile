@@ -106,6 +106,8 @@ USER root
 
 RUN chown -R linuxbrew /var/lib/nginx
 RUN chown -R linuxbrew /var/log/nginx
+RUN mkdir -p /rover-server/nginx/run
+RUN chown -R linuxbrew /rover-server/nginx/run
 
 # Expose port 80 for NGINX
 EXPOSE 80
