@@ -50,3 +50,7 @@ frontend/lighthouse/certificates/localhost-key.pem
 .DS_Store
 /example/dev
 /frontend/lighthouse/certificates
+
+*.pem
+*.cert
+*.crt
