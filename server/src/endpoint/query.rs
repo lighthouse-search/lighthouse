@@ -100,7 +100,7 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     timing_markers.push(get_timestamp() - timing_markers[0]);
 
     let response_body = response.json::<Value>().await.expect("Failed to parse response.");
-    println!("response_body {}", response_body.clone());
+    // println!("response_body {}", response_body.clone());
 
     if (response_body["error"].is_null() == false) {
         println!("elasticsearch returned an error: {}", response_body.clone());

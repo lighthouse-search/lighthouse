@@ -70,17 +70,6 @@ use elasticsearch::{
 
 use url::Url;
 
-// pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
-//     // TODO: These environment variables are temporary to stop passwords leaking to Github (even if it's just credentials for the Elastic instance running on my laptop). In the future, these environment variable names will be put into a config file, and code will fetch the environment variable identified in the config.
-//     let credentials = Credentials::Basic(environment_variables::get("elastic_username").expect("Missing 'elastic_username' env variable."), environment_variables::get("elastic_password").expect("Missing 'elastic_password' env variable."));
-//     let u = Url::parse(&environment_variables::get("elastic_host").expect("Missing 'elastic_host' env variable.")).expect("Failed to parse url");
-//     let conn_pool = SingleNodeConnectionPool::new(u);
-//     let transport = TransportBuilder::new(conn_pool).auth(credentials).build().expect("Failed to build transport.");
-//     let client = Elasticsearch::new(transport);
-
-//     client
-// });
-
 pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
     // TODO: These environment variables are temporary to stop passwords leaking to Github (even if it's just credentials for the Elastic instance running on my laptop). In the future, these environment variable names will be put into a config file, and code will fetch the environment variable identified in the config.
     let credentials = Credentials::Basic(environment_variables::get("elastic_username").expect("Missing 'elastic_username' env variable."), environment_variables::get("elastic_password").expect("Missing 'elastic_password' env variable."));
