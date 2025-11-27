@@ -69,6 +69,10 @@ RUN mv /rover-server/frontend/lighthouse/package-lock.json /rover-server-built/f
 RUN mv /rover-server/frontend/lighthouse/next.config.js /rover-server-built/frontend/lighthouse/next.config.js
 RUN mv /rover-server/frontend/lighthouse/jsconfig.json /rover-server-built/frontend/lighthouse/jsconfig.json
 RUN mv /rover-server/frontend/lighthouse/node_modules /rover-server-built/frontend/lighthouse/node_modules
+
+# Files like opensearch.xml are used in NGINX
+RUN mv /rover-server/frontend/lighthouse/public /rover-server-built/frontend/lighthouse/public
+
 # RUN mv /rover-server/frontend/admin/_static /rover-server-built/frontend/admin/_static
 RUN mv /rover-server/target /rover-server-built/target
 RUN mv /rover-server/start-webservers.sh /rover-server-built/start-webservers.sh

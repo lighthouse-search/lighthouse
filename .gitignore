@@ -25,12 +25,15 @@
 *node_modules*
 
 # debug
-/server/frontend/npm-debug.log*
-/server/frontend/yarn-debug.log*
-/server/frontend/yarn-error.log*
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
 
 # generated - Rust
-/server/target
+target
+
+# nextjs
+certificates
 
 # local env files
 /server/frontend/.env.local

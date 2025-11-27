@@ -374,3 +374,9 @@ a {
 .text_center {
   text-align: center;
 }
+
+@media screen and (pointer:none), (pointer:coarse) {
+  input, textarea {
+    font-size: 16px;
+  }
+}

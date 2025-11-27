@@ -426,3 +426,11 @@ pub struct Guard_hostname_to_use {
 pub struct Headers {
     pub headers_map: HashMap<String, String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResult {
+    pub url: String,
+    pub title: Option<String>,
+    pub text: Option<String>,
+    pub favicon: Option<String>
+}

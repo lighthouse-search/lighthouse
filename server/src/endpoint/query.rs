@@ -109,32 +109,41 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
 
     timing_markers.push(get_timestamp() - timing_markers[0]);
 
-    let mut results: Vec<Value> = Vec::new();
+    let mut results: Vec<SearchResult> = Vec::new();
     if let Some(hits) = response_body["hits"]["hits"].as_array() {
         // println!("HITS: {:?}", hits.clone());
         for hit in hits {
-            let result = hit["_source"].clone();
-            let mut output = json!({});
-            if (result["content"]["metatag"]["og:title"].is_null() == false) {
-                output["title"] = result["content"]["metatag"]["og:title"].clone();
+            let response = hit["_source"].clone();
+            let mut output: SearchResult = SearchResult {
+                url: response["url"].as_str().unwrap().to_string(),
+                title: None,
+                text: None,
+                favicon: None
+            };
+            
+            if (response["content"]["metatag"]["og:title"].is_null() == false) {
+                output.title = response["content"]["metatag"]["og:title"].as_str().map(|s| s.to_string());
             } 
             
-            if (result["content"]["metatag"]["og:description"].is_null() == false) {
-                output["text"] = result["content"]["metatag"]["og:description"].clone();
+            if (response["content"]["metatag"]["og:description"].is_null() == false) {
+                output.text = response["content"]["metatag"]["og:description"].as_str().map(|s| s.to_string());
             } else {
-                output["text"] = hit["highlight"]["content.text"].clone();
+                output.text = hit["highlight"]["content.text"][0].as_str().map(|s| s.to_string());
             }
 
-            if (result["content"]["linktag"]["icon"].is_null() == false) {
-                if (result["content"]["linktag"]["icon"].clone().to_string().starts_with("http") == false && result["content"]["linktag"]["icon"].clone().to_string().starts_with("https://") == false) {
-                    output["favicon"] = format!("https://{}{}", result["host"].as_str().unwrap(), result["content"]["linktag"]["icon"][0].clone().as_str().unwrap()).into()
+            output.title = crate::globals::text::crop_string(output.title, 100);
+            output.text = crate::globals::text::crop_string(output.text, 100);
+
+            if response["content"]["linktag"]["icon"].is_null() == false {
+                if response["content"]["linktag"]["icon"].clone().to_string().starts_with("http") == false && response["content"]["linktag"]["icon"].clone().to_string().starts_with("https://") == false {
+                    let favicon_url = format!("https://{}{}", response["host"].as_str().unwrap(), response["content"]["linktag"]["icon"][0].clone().as_str().unwrap());
+                    output.favicon = Some(favicon_url)
                 } else {
-                    output["favicon"] = result["content"]["linktag"]["icon"].clone();
+                    output.favicon = response["content"]["linktag"]["icon"].as_str().map(|s| s.to_string());
                 }
             }
 
-            output["url"] = result["url"].clone();
-            results.push(json!(output));
+            results.push(output);
         }
     }
 

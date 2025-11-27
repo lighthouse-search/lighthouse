@@ -11,6 +11,7 @@ mod guard;
 
 pub mod globals {
     pub mod environment_variables;
+    pub mod text;
 }
 
 pub mod endpoint {
