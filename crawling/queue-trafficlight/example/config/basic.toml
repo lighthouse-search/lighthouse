@@ -1,0 +1,16 @@
+[features]
+authentication = false
+
+[runners]
+max_jobs = 4
+
+[cursor]
+max_assignable_cursor = 3600
+max_backfill = 604800
+
+[database.mysql]
+username = "example-user"
+password_env = "example_user_mysql_password"
+hostname = "127.0.0.1"
+port = 3306
+database = "blueskyfeedcreator-dev"

@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { Lighthouse } from "@oracularhades/lighthouse";
 import ProfilePic from "@/components/user/profile_pic";
 import Loading from "@/components/navigating/in-progress/loading";
-import Backdrop_content from "@/components2/rows/backdrop/backdrop_content";
+import Backdrop_content from "@/components/rows/backdrop/backdrop_content";
 import Input_with_header from "@/components/input/input_with_header";
 import Link from "next/link";
 import Switch_with_text from "@/components/switches/frames/rows/switch_with_text";

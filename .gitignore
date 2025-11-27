@@ -25,12 +25,15 @@
 *node_modules*
 
 # debug
-/server/frontend/npm-debug.log*
-/server/frontend/yarn-debug.log*
-/server/frontend/yarn-error.log*
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
 
 # generated - Rust
-/server/target
+target
+
+# nextjs
+certificates
 
 # local env files
 /server/frontend/.env.local
@@ -41,3 +44,9 @@ server/.DS_Store
 /frontend/admin/_static
 
 /.guard
+/frontend/lighthouse/.next
+frontend/lighthouse/certificates/localhost-key.pem
+
+.DS_Store
+/example/dev
+/frontend/lighthouse/certificates

@@ -1,6 +1,8 @@
-PUT https://localhost:9200/lighthouse-index
-
-{
+curl -X PUT "https://elasticsearch.prod.motionfans.com:9200/lighthouse-index" \
+  -u "$elastic_username:$elastic_password" \
+  -H "Content-Type: application/json" \
+  -k \
+  -d '{
   "settings": {
     "analysis": {
       "tokenizer": {
@@ -26,11 +28,9 @@ PUT https://localhost:9200/lighthouse-index
   },
   "mappings": {
     "properties": {
-      "content.title": {
-        "type": "text",
-        "analyzer": "edge_ngram_analyzer",
-        "search_analyzer": "standard_lowercase"
+      "indexed": {
+        "type": "date"
       }
     }
   }
-}
+}'

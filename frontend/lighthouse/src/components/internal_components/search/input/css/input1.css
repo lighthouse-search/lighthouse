@@ -4,6 +4,8 @@
     /* width: 670px; */
     width: 100%;
     font-size: 14px;
-    padding: 12px;
+    /* padding: 12px; */
+    padding: 20px 10px 20px 10px;
     border-radius: 2px !important;
+    box-sizing: border-box;
 }

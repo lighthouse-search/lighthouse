@@ -2,6 +2,7 @@ import '@/components/global.css';
 import "../../styles/global.css";
 import { Roboto } from 'next/font/google';
 import Head from 'next/head';
+import Link from 'next/link';
 
 const roboto = Roboto({
     subsets: ['latin'],

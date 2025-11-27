@@ -35,6 +35,13 @@ pub fn generate_random_id() -> String {
     random_string + &timestamp.to_string()
 }
 
+pub fn get_timestamp() -> u128 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+}
+
 pub fn is_null_or_whitespace(data: Option<String>) -> bool {
     if (data.is_none()) {
         return true;
@@ -126,36 +133,68 @@ pub async fn request_authentication(body: Option<String>, params: &Query_string,
     });
 }
 
-pub async fn request_authentication_staticauth(jwt: Option<&str>, device_id: &str, project_id: &str) -> Result<Request_authentication_output, Box<dyn Error>> {
-    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
+// pub async fn request_authentication(body: Option<String>, params: &Query_string, headers: &Headers, pathname: &str, use_cropped_body: bool) -> Result<Request_authentication_output, Box<dyn Error>> {
+//     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
+//     // TODO: Something needs to be done about "pathname" not being sent or processed in Guard.
 
-    let result: Option<Device> = device::table
-        .filter(device::id.eq(&device_id))
-        .first(&mut db)
-        .optional().expect("Something went wrong querying the DB1.");
+//     let client = reqwest::Client::new();
+//     let mut params_object: HashMap<String, String> = HashMap::new();
+//     let params_string: String = params.0.clone();
+//     if !params_string.is_empty() {
+//         params_object = Url::parse(&format!("http://localhost/?{}", params_string))
+//             .map(|url| url.query_pairs().into_owned().collect())
+//             .unwrap_or_default();
+//     }
 
-    if (result.is_none()) {
-        return Err("Authentication failed [device doesn't exist]".into())
-    }
+//     // This always uses POST but really it should proxy with the same incoming request type.
+//     let mut request_builder = client.post("http://127.0.0.1:8000/guard/api/proxy/authentication")
+//         .header("Content-Type", "application/json")
+//         .header("host", "127.0.0.1:4455")
+//         .body(body.clone().unwrap_or_default());
 
-    let device = result.unwrap();
+//     for (key, value) in &params_object {
+//         request_builder = request_builder.query(&[(key, value)]);
+//     }
 
-    let public_key = device.public_key;
-    let account_id = device.account_id;
+//     for (key, value) in &headers.headers_map {
+//         if key == "content-length" || key == "content-encoding" {
+//             continue;
+//         }
+//         request_builder = request_builder.header(key, value);
+//     }
 
-    static_auth_verify(
-        &jwt.expect("Missing jwt").to_string(),
-        &public_key,
-        None
-    ).await.expect("Authentication failed");
+//     let response = request_builder.send().await.expect("Failed to get response.");
+//     if (response.status() != 200) {
+//         println!("not 200!");
+//         return Err("Authentication failed".into());
+//     }
 
-    println!("Auth didn't fail");
+//     // Ignore the messy code, I'll clean it.
 
-    return Ok(Request_authentication_output {
-        // returned_connection: db,
-        device_id: device.id,
-        account_id: account_id,
-        // TODO: [SECURITY]: CHECK THIS USER CAN AUTHORISE THIS PROJECT_ID.
-        project_id: project_id.to_string()
-    });
-}
+//     let response_text = response.text().await.expect("Failed to get response text.");
+
+//     let guard_auth: GuardAuth = serde_json::from_str(&response_text).unwrap();
+//     println!("guard_auth {:?}", guard_auth);
+//     println!("Forwarded response: {}", response_text);
+
+//     let account_email = guard_auth.guard.expect("Missing .guard").user.unwrap().email.unwrap();
+
+//     let profile_option: Option<Profile> = profiles::table
+//     .filter(profiles::email.eq(&account_email))
+//     .select(crate::tables::profiles::all_columns.nullable())
+//     .first::<Option<Profile>>(&mut db)
+//     .expect("Error querying the DB.");
+
+//     // TODO: We should create an account if this happens.
+//     if (profile_option.is_none()) {
+//         // This should never happen.
+//         return Err("Authentication failed [profile doesn't exist]".into());
+//     }
+
+//     let profile = profile_option.unwrap();
+
+//     return Ok(Request_authentication_output {
+//         // TODO: This needs to be fixed.
+//         account_id: profile.id.clone(),
+//     });
+// }

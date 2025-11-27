@@ -54,7 +54,7 @@ pub fn stage() -> AdHoc {
         .mount("/api", routes![options_handler])
         .mount("/api/native-v1/metadata", routes![metadata_urls])
         .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
-        .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index])
+        .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index, crate::endpoint::crawler::crawler_queue])
         .mount("/api/native-v1/account", routes![crate::endpoint::account::account_me, crate::endpoint::account::account_list])
         .mount("/api/native-v1/admin/index/job", routes![crate::endpoint::admin::index::admin_index_list, crate::endpoint::admin::index::admin_index_update])
     })

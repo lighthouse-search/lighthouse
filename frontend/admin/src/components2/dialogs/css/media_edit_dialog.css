@@ -1,5 +1,0 @@
-.Media_Edit_Dialog .dialog_frame {
-    display: flex;
-    flex-direction: column;
-    row-gap: 8px;
-}
