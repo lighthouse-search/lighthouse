@@ -58,6 +58,12 @@ pub fn guard_hostname_for_host(headers: &Headers) -> Result<String, String> {
         url.set_port(Some(GUARD_HOSTNAME_TO_USE.local_port.unwrap())).expect("Failed to set port");
         Ok(url.as_str().to_string())
     } else {
+        // TODO: There is a bug here, I will fix it later:
+        // [2025-11-27T17:52:13Z INFO  rocket::server::_] Matched: (metadata_urls) GET /api/native-v1/metadata/urls
+        // [2025-11-27T17:52:13Z DEBUG lighthouse_server::guard] hostname: localhost || config.metadata: Some(Config_metadata { hostname: Some(["[..]", "[..]"]) })
+        // thread 'tokio-runtime-worker' (17) panicked at src/guard.rs:61:51:
+        // called `Option::unwrap()` on a `None` value
+
         Ok(GUARD_HOSTNAME_TO_USE.hostname.clone().unwrap())
     }
 }

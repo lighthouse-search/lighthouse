@@ -29,7 +29,7 @@ use std::io::Write;
 
 use rand::prelude::*;
 
-use crate::endpoint::metadata::metadata_urls;
+// use crate::endpoint::metadata::metadata_urls;
 use crate::global::{ generate_random_id, is_null_or_whitespace, request_authentication };
 use crate::responses::*;
 use crate::structs::*;
@@ -52,7 +52,7 @@ pub fn stage() -> AdHoc {
     AdHoc::on_ignite("Diesel SQLite Stage", |rocket| async {
         rocket
         .mount("/api", routes![options_handler])
-        .mount("/api/native-v1/metadata", routes![metadata_urls])
+        // .mount("/api/native-v1/metadata", routes![metadata_urls])
         .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
         .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index, crate::endpoint::crawler::crawler_queue])
         .mount("/api/native-v1/account", routes![crate::endpoint::account::account_me, crate::endpoint::account::account_list])

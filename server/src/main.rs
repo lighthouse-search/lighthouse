@@ -7,7 +7,7 @@ mod responses;
 mod tables;
 mod database;
 mod security;
-mod guard;
+// mod guard;
 
 pub mod globals {
     pub mod environment_variables;
@@ -18,7 +18,7 @@ pub mod endpoint {
     pub mod account;
     pub mod query;
     pub mod crawler;
-    pub mod metadata;
+    // pub mod metadata;
     pub mod admin {
         pub mod index;
     }
@@ -29,7 +29,7 @@ pub mod network {
 }
 
 use diesel_mysql::Cors;
-use guard::{build_guard_hostname_to_use, start_guard};
+// use guard::{build_guard_hostname_to_use, start_guard};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::{catch, catchers, Build, Rocket};
@@ -133,9 +133,9 @@ fn get_config() -> Result<Config, String> {
     Ok(config)
 }
 
-pub static GUARD_HOSTNAME_TO_USE: Lazy<Guard_hostname_to_use> = Lazy::new(|| {
-    build_guard_hostname_to_use().expect("build_guard_hostname_to_use() failed")
-});
+// pub static GUARD_HOSTNAME_TO_USE: Lazy<Guard_hostname_to_use> = Lazy::new(|| {
+//     build_guard_hostname_to_use().expect("build_guard_hostname_to_use() failed")
+// });
 
 #[catch(500)]
 fn internal_error() -> serde_json::Value {
