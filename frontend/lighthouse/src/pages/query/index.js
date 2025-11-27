@@ -72,11 +72,6 @@ export default function Query() {
         return (
             <div className="column row_gap_8">
                 {/* <InfoCard/> */}
-                <div className="row column_gap_4">
-                    <Link href="#" className="font_size_12 greyText">Search transparency</Link>
-                    <p className="font_size_12 greyText">• </p>
-                    {stats && <p className="font_size_12 greyText">{stats.total} results in {stats.took}ms</p>}
-                </div>
             </div>
         )
     });

@@ -33,12 +33,14 @@
     row-gap: 12px;
 
     margin-top: -45px;
+    width: 100%;
 }
 
 .search_bar_container .search_bar_input {
     width: 600px;
-    /* font-size: 14px; */
-    /* padding: 12px; */
+    max-width: 90%;
+    box-sizing: border-box;
+    align-self: center;
 }
 
 .search_bar_container .logo_div .logo_title {
@@ -47,12 +49,5 @@
 }
 
 .search_bar_container .legal {
-    font-size: 14px;
-}
-
-.search_container .query_search_bar_input {
-    width: 600px;
-    /* width: 100%; */
-    padding: 14px;
     font-size: 14px;
 }
