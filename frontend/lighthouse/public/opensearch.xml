@@ -4,5 +4,6 @@
 <Description>Search Lighthouse</Description>
 <InputEncoding>UTF-8</InputEncoding>
 <LongName>Lighthouse</LongName>
-<Url type="text/html" method="get" template="/?query={searchTerms}"/><Url type="application/x-suggestions+json" template="query/query?={searchTerms}"/>
+<Url type="text/html" method="get" template="%DOMAIN%/query/?q={searchTerms}"/>
+<Url type="application/x-suggestions+json" template="%DOMAIN%/query/?q={searchTerms}"/>
 </OpenSearchDescription>

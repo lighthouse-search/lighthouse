@@ -28,7 +28,6 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     let mut timing_markers = Vec::new();
     timing_markers.push(get_timestamp());
     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
-    // TODO: This should have a dedicated function like video_get.
 
     // let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/query/list").await {
     //     Ok(data) => data,
