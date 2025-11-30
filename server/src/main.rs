@@ -22,6 +22,7 @@ pub mod endpoint {
     pub mod admin {
         pub mod index;
     }
+    pub mod misc;
 }
 
 pub mod network {

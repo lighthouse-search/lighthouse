@@ -52,6 +52,7 @@ pub fn stage() -> AdHoc {
     AdHoc::on_ignite("Diesel SQLite Stage", |rocket| async {
         rocket
         .mount("/api", routes![options_handler])
+        .mount("/", routes![crate::endpoint::misc::opensearch])
         // .mount("/api/native-v1/metadata", routes![metadata_urls])
         .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
         .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index, crate::endpoint::crawler::crawler_queue])
