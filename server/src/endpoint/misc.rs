@@ -15,6 +15,11 @@ pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
         if headers.headers_map.get("x-forwarded-port").is_none() == false {
             _host_string = format!("{}:{}", _host_string, headers.headers_map.get("x-forwarded-port").unwrap().to_string());
         }
+
+        // Include schema if provided by x-forwarded-schema.
+        if headers.headers_map.get("x-forwarded-schema").is_none() == false {
+            _host_string = format!("{}://{}", headers.headers_map.get("x-forwarded-schema").unwrap().to_string(), _host_string,);
+        }
     } else if headers.headers_map.get("origin").is_none() == false {
         _host_string = headers.headers_map.get("origin").unwrap().to_string();
     } else if headers.headers_map.get("host").is_none() == false {
@@ -38,7 +43,7 @@ pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
 
     let output = format!("{}://{}:{}", scheme, host, url.port().unwrap_or(443));
 
-    (Status::Ok, (ContentType::XML, r#"<?xml version="1.0" encoding="utf-8"?>
+    (Status::Ok, (ContentType::new("application", "xml"), r#"<?xml version="1.0" encoding="utf-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
 <ShortName>Lighthouse</ShortName>
 <Description>Search Lighthouse</Description>
