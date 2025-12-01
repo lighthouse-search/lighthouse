@@ -1,18 +1,26 @@
-use rocket::http::ContentType;
+use rocket::http::{ContentType, Status};
 use rocket::get;
 
 use crate::structs::*;
 
 #[get("/opensearch.xml")]
-pub async fn opensearch(headers: &Headers) -> (ContentType, String) {
+pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
     let mut _host_string: String = String::new();
     
-    if headers.headers_map.get("origin").is_none() == false {
+    if headers.headers_map.get("x-forwarded-host").is_none() == false {
+        // Support NGINX proxying.
+        _host_string = headers.headers_map.get("x-forwarded-host").unwrap().to_string();
+
+        // Include port if provided by x-forwarded-port.
+        if headers.headers_map.get("x-forwarded-port").is_none() == false {
+            _host_string = format!("{}:{}", _host_string, headers.headers_map.get("x-forwarded-port").unwrap().to_string());
+        }
+    } else if headers.headers_map.get("origin").is_none() == false {
         _host_string = headers.headers_map.get("origin").unwrap().to_string();
     } else if headers.headers_map.get("host").is_none() == false {
         _host_string = headers.headers_map.get("host").unwrap().to_string();
     } else {
-        return (ContentType::XML, "Missing headers.origin".to_string());
+        return (Status::BadRequest, (ContentType::Text, "No headers.origin or headers.host provided.".to_string()));
     }
 
     // IF missing http:// or https://, default to https://.
@@ -30,7 +38,7 @@ pub async fn opensearch(headers: &Headers) -> (ContentType, String) {
 
     let output = format!("{}://{}:{}", scheme, host, url.port().unwrap_or(443));
 
-    (ContentType::XML, r#"<?xml version="1.0" encoding="utf-8"?>
+    (Status::Ok, (ContentType::XML, r#"<?xml version="1.0" encoding="utf-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
 <ShortName>Lighthouse</ShortName>
 <Description>Search Lighthouse</Description>
@@ -38,5 +46,5 @@ pub async fn opensearch(headers: &Headers) -> (ContentType, String) {
 <LongName>Lighthouse</LongName>
 <Url type="text/html" method="get" template="%DOMAIN%/query/?q={searchTerms}"/>
 <Url type="application/x-suggestions+json" template="%DOMAIN%/query/?q={searchTerms}"/>
-</OpenSearchDescription>"#.to_string().replace("%DOMAIN%", &output))
+</OpenSearchDescription>"#.to_string().replace("%DOMAIN%", &output)))
 }
