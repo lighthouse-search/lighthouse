@@ -43,7 +43,7 @@ pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
 
     let output = format!("{}://{}:{}", scheme, host, url.port().unwrap_or(443));
 
-    (Status::Ok, (ContentType::new("application", "xml"), r#"<?xml version="1.0" encoding="utf-8"?>
+    (Status::Ok, (ContentType::new("application", "application/opensearchdescription+xml"), r#"<?xml version="1.0" encoding="utf-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
 <ShortName>Lighthouse</ShortName>
 <Description>Search Lighthouse</Description>
