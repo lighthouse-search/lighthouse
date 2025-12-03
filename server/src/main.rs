@@ -7,7 +7,7 @@ mod responses;
 mod tables;
 mod database;
 mod security;
-mod guard;
+// mod guard;
 
 pub mod globals {
     pub mod environment_variables;
@@ -18,10 +18,11 @@ pub mod endpoint {
     pub mod account;
     pub mod query;
     pub mod crawler;
-    pub mod metadata;
+    // pub mod metadata;
     pub mod admin {
         pub mod index;
     }
+    pub mod misc;
 }
 
 pub mod network {
@@ -29,7 +30,7 @@ pub mod network {
 }
 
 use diesel_mysql::Cors;
-use guard::{build_guard_hostname_to_use, start_guard};
+// use guard::{build_guard_hostname_to_use, start_guard};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::{catch, catchers, Build, Rocket};
@@ -69,17 +70,6 @@ use elasticsearch::{
 };
 
 use url::Url;
-
-// pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
-//     // TODO: These environment variables are temporary to stop passwords leaking to Github (even if it's just credentials for the Elastic instance running on my laptop). In the future, these environment variable names will be put into a config file, and code will fetch the environment variable identified in the config.
-//     let credentials = Credentials::Basic(environment_variables::get("elastic_username").expect("Missing 'elastic_username' env variable."), environment_variables::get("elastic_password").expect("Missing 'elastic_password' env variable."));
-//     let u = Url::parse(&environment_variables::get("elastic_host").expect("Missing 'elastic_host' env variable.")).expect("Failed to parse url");
-//     let conn_pool = SingleNodeConnectionPool::new(u);
-//     let transport = TransportBuilder::new(conn_pool).auth(credentials).build().expect("Failed to build transport.");
-//     let client = Elasticsearch::new(transport);
-
-//     client
-// });
 
 pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
     // TODO: These environment variables are temporary to stop passwords leaking to Github (even if it's just credentials for the Elastic instance running on my laptop). In the future, these environment variable names will be put into a config file, and code will fetch the environment variable identified in the config.
@@ -133,9 +123,9 @@ fn get_config() -> Result<Config, String> {
     Ok(config)
 }
 
-pub static GUARD_HOSTNAME_TO_USE: Lazy<Guard_hostname_to_use> = Lazy::new(|| {
-    build_guard_hostname_to_use().expect("build_guard_hostname_to_use() failed")
-});
+// pub static GUARD_HOSTNAME_TO_USE: Lazy<Guard_hostname_to_use> = Lazy::new(|| {
+//     build_guard_hostname_to_use().expect("build_guard_hostname_to_use() failed")
+// });
 
 #[catch(500)]
 fn internal_error() -> serde_json::Value {

@@ -40,8 +40,8 @@ export default function Sidebar2(page_props) {
         if (should_run.current != true) { return; }
         should_run.current = false;
 
-        metadata_get();
-        run();
+        // metadata_get();
+        // run();
     });
 
     const notices_ul = (notices ? notices : []).map((data) => {

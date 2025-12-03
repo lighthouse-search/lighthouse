@@ -1,8 +1,5 @@
-DROP DATABASE `blueskyfeedcreator-dev`;
-CREATE DATABASE `blueskyfeedcreator-dev`;
-use `blueskyfeedcreator-dev`;
-CREATE TABLE runner (runner_ip VARCHAR(255) PRIMARY KEY, nonce VARCHAR(255) NOT NULL UNIQUE, capacity BIGINT);
-CREATE TABLE jobs (
+CREATE TABLE crawler_runner (runner_ip VARCHAR(255) PRIMARY KEY, nonce VARCHAR(255) NOT NULL UNIQUE, capacity BIGINT);
+CREATE TABLE crawler_jobs (
     id        VARCHAR(255) NOT NULL,
     runner_ip        VARCHAR(255) NOT NULL,
     nonce            VARCHAR(255) NOT NULL,
@@ -26,6 +23,4 @@ CREATE TABLE jobs (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
-CREATE TABLE posts (
-    `cursor` BIGINT
-);
+CREATE TABLE crawler_missingranges (missing_from BIGINT, missing_to BIGINT, PRIMARY KEY (missing_from, missing_to));

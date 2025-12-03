@@ -48,5 +48,11 @@ server/.DS_Store
 frontend/lighthouse/certificates/localhost-key.pem
 
 .DS_Store
-/example/dev
 /frontend/lighthouse/certificates
+
+*.pem
+*.cert
+*.crt
+
+/crawling/queue-trafficlight/example/config/dev
+/example/dev

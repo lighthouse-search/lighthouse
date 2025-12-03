@@ -52,7 +52,7 @@ export default function Query() {
 
     function get_query() {
         const params = new URLSearchParams(window.location.search);
-        const query = params.get("query");
+        const query = params.get("q");
 
         return query;
     }

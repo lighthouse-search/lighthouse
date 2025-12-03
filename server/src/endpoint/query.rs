@@ -28,7 +28,6 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     let mut timing_markers = Vec::new();
     timing_markers.push(get_timestamp());
     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
-    // TODO: This should have a dedicated function like video_get.
 
     // let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/query/list").await {
     //     Ok(data) => data,
@@ -100,7 +99,7 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     timing_markers.push(get_timestamp() - timing_markers[0]);
 
     let response_body = response.json::<Value>().await.expect("Failed to parse response.");
-    println!("response_body {}", response_body.clone());
+    // println!("response_body {}", response_body.clone());
 
     if (response_body["error"].is_null() == false) {
         println!("elasticsearch returned an error: {}", response_body.clone());
