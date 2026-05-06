@@ -66,7 +66,7 @@ use elasticsearch::{
     http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
     params::Refresh,
     Elasticsearch, IndexParts, SearchParts,
-    cert::CertificateValidation
+    cert::{Certificate, CertificateValidation}
 };
 
 use url::Url;
@@ -76,9 +76,19 @@ pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
     let credentials = Credentials::Basic(environment_variables::get("elastic_username").expect("Missing 'elastic_username' env variable."), environment_variables::get("elastic_password").expect("Missing 'elastic_password' env variable."));
     let u = Url::parse(&environment_variables::get("elastic_host").expect("Missing 'elastic_host' env variable.")).expect("Failed to parse url");
     let conn_pool = SingleNodeConnectionPool::new(u);
+
+    let cert_validation = match environment_variables::get("elastic_ca_cert_path").ok() {
+        Some(path) => {
+            let pem = std::fs::read(&path).expect("Failed to read 'elastic_ca_cert_path'.");
+            let ca = Certificate::from_pem(&pem).expect("Failed to parse CA certificate.");
+            CertificateValidation::Full(ca)
+        }
+        None => CertificateValidation::None,
+    };
+
     let transport = TransportBuilder::new(conn_pool)
         .auth(credentials)
-        .cert_validation(CertificateValidation::None)
+        .cert_validation(cert_validation)
         .build()
         .expect("Failed to build transport.");
     let client = Elasticsearch::new(transport);

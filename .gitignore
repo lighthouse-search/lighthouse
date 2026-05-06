@@ -57,3 +57,5 @@ frontend/lighthouse/certificates/localhost-key.pem
 /crawling/queue-trafficlight/example/config/dev
 /example/dev
 .DS_Store
+
+kubernetes/

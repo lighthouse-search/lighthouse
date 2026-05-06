@@ -7,9 +7,9 @@
   },
   "dependencies": {
     "@oracularhades/lighthouse": "file:../../libraries/npm",
-    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.4",
     "hades-auth": "latest",
-    "next": "latest",
+    "next": "16.2.4",
     "react": "19.2.5",
     "react-dom": "19.2.5"
   },
@@ -17,8 +17,8 @@
     "node": ">=22.18.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.9",
-    "tailwindcss": "^4.2.2"
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.2.4"
   }
 }
