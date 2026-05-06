@@ -77,7 +77,7 @@ pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
     let u = Url::parse(&environment_variables::get("elastic_host").expect("Missing 'elastic_host' env variable.")).expect("Failed to parse url");
     let conn_pool = SingleNodeConnectionPool::new(u);
 
-    let cert_validation = match environment_variables::get("elastic_ca_cert_path").ok() {
+    let cert_validation = match environment_variables::get("elastic_ca_cert_path") {
         Some(path) => {
             let pem = std::fs::read(&path).expect("Failed to read 'elastic_ca_cert_path'.");
             let ca = Certificate::from_pem(&pem).expect("Failed to parse CA certificate.");
