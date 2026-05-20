@@ -40,6 +40,9 @@ COPY --from=build-stage /rover-server/libraries /rover-server/libraries
 
 # Build user frontend
 WORKDIR /rover-server/frontend/lighthouse
+# `node:latest` ships corepack but no longer enables the yarn/pnpm shims by
+# default — enable it so `yarn` is on PATH.
+RUN corepack enable
 RUN yarn
 RUN npm run build
 
