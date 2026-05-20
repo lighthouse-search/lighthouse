@@ -56,11 +56,14 @@ use tokio::sync::{mpsc, Mutex, watch};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message, tungstenite::protocol::CloseFrame};
 use futures_util::{StreamExt, SinkExt};
 
-use elasticsearch::{
+// Search-client imports kept for future use; this binary doesn't currently
+// instantiate a client. Same crate (`opensearch`) speaks to both Elasticsearch
+// and OpenSearch — see server/src/search.rs for the rationale.
+use opensearch::{
     auth::Credentials,
     http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
     params::Refresh,
-    Elasticsearch, IndexParts, SearchParts,
+    OpenSearch, IndexParts, SearchParts,
     cert::CertificateValidation
 };
 

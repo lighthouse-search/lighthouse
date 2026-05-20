@@ -12,7 +12,7 @@ use diesel::prelude::*;
 use diesel::sql_types::*;
 use diesel::sql_query;
 
-use elasticsearch::{BulkOperation, BulkParts, SearchParts};
+use opensearch::{BulkOperation, BulkParts, SearchParts};
 
 use crate::database::elasticsearch_parse_response;
 use crate::global::{ generate_random_id, get_timestamp, is_null_or_whitespace, request_authentication };
@@ -94,7 +94,7 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     .from(0)
     .body(query)
     .send()
-    .await.expect("Failed to query ElasticSearch");
+    .await.expect("Failed to query search backend");
 
     timing_markers.push(get_timestamp() - timing_markers[0]);
 
@@ -102,7 +102,7 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     // println!("response_body {}", response_body.clone());
 
     if (response_body["error"].is_null() == false) {
-        println!("elasticsearch returned an error: {}", response_body.clone());
+        println!("search backend returned an error: {}", response_body.clone());
         return status::Custom(Status::InternalServerError, error_message("internal_server_error", "Sorry, something went wrong."));
     }
 

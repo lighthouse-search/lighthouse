@@ -20,7 +20,7 @@ use crate::structs::*;
 use crate::tables::*;
 use crate::ES;
 
-use elasticsearch::{BulkOperation, BulkParts, SearchParts};
+use opensearch::{BulkOperation, BulkParts, SearchParts};
 use uuid::Uuid;
 use url::Url;
 
@@ -85,17 +85,18 @@ pub async fn crawler_index(params: &Query_string, mut body: Json<Crawler_index_b
         ops.push(
             BulkOperation::delete(url.clone()).into()
         );
-    
+
         ops.push(
-            BulkOperation::create(json!({
-                "url": url.clone(),
-                "host": parsed_url.host_str(),
-                "content": content,
-                "indexed": created
-            })
-        )
-        .id(url)
-        .into());
+            BulkOperation::create(
+                url.clone(),
+                json!({
+                    "url": url.clone(),
+                    "host": parsed_url.host_str(),
+                    "content": content,
+                    "indexed": created
+                })
+            ).into()
+        );
     };
 
     // Add bulk event data to elasticsearch.

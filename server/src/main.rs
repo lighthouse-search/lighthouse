@@ -6,6 +6,7 @@ mod structs;
 mod responses;
 mod tables;
 mod database;
+mod search;
 mod security;
 // mod guard;
 
@@ -61,40 +62,9 @@ use tokio::sync::{mpsc, Mutex, watch};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message, tungstenite::protocol::CloseFrame};
 use futures_util::{StreamExt, SinkExt};
 
-use elasticsearch::{
-    auth::Credentials,
-    http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
-    params::Refresh,
-    Elasticsearch, IndexParts, SearchParts,
-    cert::{Certificate, CertificateValidation}
-};
-
-use url::Url;
-
-pub static ES: Lazy<Elasticsearch> = Lazy::new(|| {
-    // TODO: These environment variables are temporary to stop passwords leaking to Github (even if it's just credentials for the Elastic instance running on my laptop). In the future, these environment variable names will be put into a config file, and code will fetch the environment variable identified in the config.
-    let credentials = Credentials::Basic(environment_variables::get("elastic_username").expect("Missing 'elastic_username' env variable."), environment_variables::get("elastic_password").expect("Missing 'elastic_password' env variable."));
-    let u = Url::parse(&environment_variables::get("elastic_host").expect("Missing 'elastic_host' env variable.")).expect("Failed to parse url");
-    let conn_pool = SingleNodeConnectionPool::new(u);
-
-    let cert_validation = match environment_variables::get("elastic_ca_cert_path") {
-        Some(path) => {
-            let pem = std::fs::read(&path).expect("Failed to read 'elastic_ca_cert_path'.");
-            let ca = Certificate::from_pem(&pem).expect("Failed to parse CA certificate.");
-            CertificateValidation::Full(ca)
-        }
-        None => CertificateValidation::None,
-    };
-
-    let transport = TransportBuilder::new(conn_pool)
-        .auth(credentials)
-        .cert_validation(cert_validation)
-        .build()
-        .expect("Failed to build transport.");
-    let client = Elasticsearch::new(transport);
-
-    client
-});
+// Re-exported as `crate::ES` so existing call sites
+// (`use crate::ES; ES.search(...)`) keep working unchanged.
+pub use crate::search::CLIENT as ES;
 
 pub static CHANNEL: Lazy<(Mutex<mpsc::UnboundedSender<Message>>, Mutex<mpsc::UnboundedReceiver<Message>>)> = Lazy::new(|| {
     let (tx, rx) = mpsc::unbounded_channel(); // Use tokio's mpsc::channel instead of std::sync

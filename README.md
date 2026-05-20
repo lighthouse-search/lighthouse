@@ -23,7 +23,7 @@ Instructions for starting Lighthouse (this will change to a configuration file i
 ## Languages/Frameworks
 - [Rust](https://www.rust-lang.org/)
 - [Typescript](https://www.typescriptlang.org/)/Javascript/[Node.js](https://nodejs.org/)
-- [Elasticsearch](https://www.elastic.co/elasticsearch)
+- [Elasticsearch](https://www.elastic.co/elasticsearch) or [OpenSearch](https://opensearch.org/) (either can be used as the search backend; selected via the `search_backend` env var)
 - [Next.js](https://nextjs.org/)
 - [Guard](https://github.com/oracularhades/guard)
 - [hades-auth](https://github.com/oracularhades/hades-auth)

@@ -16,7 +16,7 @@ use crate::structs::*;
 use crate::tables::*;
 use crate::ES;
 
-use elasticsearch::{BulkOperation, BulkParts, SearchParts, DeleteByQueryParts};
+use opensearch::{BulkOperation, BulkParts, SearchParts, DeleteByQueryParts};
 
 use uuid::Uuid;
 use url::Url;
@@ -75,13 +75,13 @@ pub async fn admin_index_list(ids: Option<String>, me: Option<bool>, authenticat
     .from(0)
     .body(query)
     .send()
-    .await.expect("Failed to query ElasticSearch");
+    .await.expect("Failed to query search backend");
 
     let response_body = response.json::<Value>().await.expect("Failed to parse response.");
     println!("response_body {}", response_body.clone());
 
     if (response_body["error"].is_null() == false) {
-        println!("elasticsearch returned an error: {}", response_body.clone());
+        println!("search backend returned an error: {}", response_body.clone());
         return status::Custom(Status::InternalServerError, error_message("internal_server_error", "Sorry, something went wrong."));
     }
 
@@ -189,7 +189,7 @@ pub async fn admin_index_update(params: &Query_string, mut body: Json<Admin_inde
     .delete_by_query(DeleteByQueryParts::Index(&["lighthouse-index-jobs"]))
     .body(query)
     .send()
-    .await.expect("Failed to delete elasticsearch records");
+    .await.expect("Failed to delete search backend records");
 
     println!("response: {:?}", response.json::<Value>().await.expect("Failed to parse response."));
 
@@ -206,14 +206,15 @@ pub async fn admin_index_update(params: &Query_string, mut body: Json<Admin_inde
         .as_millis().try_into().unwrap();
 
         ops.push(
-            BulkOperation::create(json!({
-                "status": "pending",
-                "urls": url,
-                "created": created
-            })
-        )
-        .id(Uuid::new_v4().to_string())
-        .into());
+            BulkOperation::create(
+                Uuid::new_v4().to_string(),
+                json!({
+                    "status": "pending",
+                    "urls": url,
+                    "created": created
+                })
+            ).into()
+        );
     };
 
     // Add bulk event data to elasticsearch.
