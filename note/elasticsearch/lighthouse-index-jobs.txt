@@ -1,0 +1,32 @@
+curl -X PUT "https://elasticsearch.prod.motionfans.com:9200/lighthouse-index-jobs" \
+  -u "$elastic_username:$elastic_password" \
+  -H "Content-Type: application/json" \
+  -k \
+  -d '{
+  "mappings": {
+    "properties": {
+      "status": {
+        "type": "keyword"
+      },
+      "urls": {
+        "type": "keyword"
+      },
+      "created": {
+        "type": "date"
+      }
+    }
+  }
+}'
+
+# Document shape (written by /admin/index/update, read by /admin/index/list):
+#   {
+#     "status": "pending",     // "pending" | "crawling"
+#     "urls":   ["https://…"], // array of seed URLs
+#     "created": 1716240000000 // i64 millis since epoch
+#   }
+#
+# - `status` is queried with a `terms` filter — needs `keyword` (text-mapped
+#   strings won't match a terms query reliably).
+# - `urls` is currently only round-tripped through _source, but `keyword` keeps
+#   the door open for filtering by exact URL.
+# - `created` is `date` for future range/sort queries.

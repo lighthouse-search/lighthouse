@@ -139,32 +139,17 @@ pub async fn crawler_index(params: &Query_string, mut body: Json<Crawler_index_b
 pub async fn crawler_queue(params: &Query_string) -> Custom<Value> {
     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
 
-    let queue_result: Option<Crawler_queue> = crate::tables::crawler_queue::table
-    .select(
-        crate::tables::crawler_queue::all_columns,
-    )
-    .filter(crate::tables::crawler_queue::status.eq("pending"))
-    .first::<Crawler_queue>(&mut *db)
-    .optional()
-    .expect("Something went wrong querying the DB.");
+    let node_id = std::env::var("lighthouse_node_id").unwrap_or_else(|_| "node-1".to_string());
 
-    if queue_result.is_none() {
-        return status::Custom(Status::Ok, json!({
+    // Atomically claim the next queued URL for this node (see crawl::queue).
+    match crate::crawl::queue::claim_next_url(&mut *db, &node_id) {
+        Some(item) => status::Custom(Status::Ok, json!({
+            "ok": true,
+            "data": vec![item]
+        })),
+        None => status::Custom(Status::Ok, json!({
             "ok": true,
             "data": Vec::<Crawler_queue>::new()
-        }));
+        })),
     }
-
-    diesel::update(crate::tables::crawler_queue::table)
-    .set((
-        crate::tables::crawler_queue::status.eq("crawling"),
-        crate::tables::crawler_queue::crawling_node.eq("node-1"), // TODO: Get actual node ID.
-        crate::tables::crawler_queue::crawling_since.eq(get_timestamp() as i64),
-    ))
-    .execute(&mut *db).expect("Failed to insert URL.");
-
-    return status::Custom(Status::Ok, json!({
-        "ok": true,
-        "data": vec![queue_result.unwrap()]
-    }));
 }

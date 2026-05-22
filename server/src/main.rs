@@ -30,6 +30,10 @@ pub mod network {
     pub mod port;
 }
 
+pub mod crawl {
+    pub mod queue;
+}
+
 use diesel_mysql::Cors;
 // use guard::{build_guard_hostname_to_use, start_guard};
 use rocket::fairing::{Fairing, Info, Kind};
@@ -130,6 +134,10 @@ async fn main() {
     //     GUARD_HOSTNAME_TO_USE.local_port.expect("Missing GUARD_HOSTNAME_TO_USE.local_port");
     //     start_guard(GUARD_HOSTNAME_TO_USE.local_port.unwrap()).await;
     // }
+
+    // Promote `considering` URLs to `pending` so the crawl queue API has work
+    // to hand out.
+    std::thread::spawn(|| crate::crawl::queue::consider_queue());
 
     log::info!("Starting (Rocket) webserver...");
     rocket().await.launch().await.expect("Failed to start web server");
