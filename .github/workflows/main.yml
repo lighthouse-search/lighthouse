@@ -18,6 +18,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Build the server and the (isolated) crawler image in parallel. Each
+    # entry produces its own ghcr.io tag; the crawler image is what
+    # kubernetes/30-lighthouse.yaml references as
+    # `ghcr.io/lighthouse-search/lighthouse-crawler:latest`.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: server
+            image: ghcr.io/${{ github.repository }}
+            dockerfile: ./server/Dockerfile
+          - name: crawler
+            image: ghcr.io/${{ github.repository }}-crawler
+            dockerfile: ./crawling/crawler/firefox-agent/Dockerfile
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
@@ -34,16 +49,16 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-      
+
     - name: downcase REPO
       run: |
         echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-    - name: Build and push Docker image
+    - name: Build and push Docker image (${{ matrix.name }})
       uses: docker/build-push-action@v5
       with:
-        file: ./server/Dockerfile
+        file: ${{ matrix.dockerfile }}
         context: ./
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}:${{ github.ref_name == 'main' && 'latest' || format('{0}-latest', github.ref_name) }}
+          ${{ matrix.image }}:${{ github.ref_name == 'main' && 'latest' || format('{0}-latest', github.ref_name) }}
