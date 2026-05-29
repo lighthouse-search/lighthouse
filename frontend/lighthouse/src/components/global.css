@@ -1,3 +1,19 @@
+@import "tailwindcss";
+
+:root {
+  /* Subtle off-white surface used to lift elements off a white page
+     (search input, filter button, etc.). */
+  --surface-subtle: #f8f9fa;
+  --surface-subtle-border: #dadce0;
+  --surface-subtle-border-hover: #bcc0c4;
+}
+
+/* Apply to any element that should read as a subtle raised surface. */
+.surface_subtle {
+  background-color: var(--surface-subtle);
+  border: 1px solid var(--surface-subtle-border);
+}
+
 body {
   overflow: hidden;
   padding: 0px;
@@ -60,49 +76,51 @@ dialog::backdrop {
   background-color: black;
 }
 
-Input {
-  position: relative;
-  /* background-color: #303132; */
-  background-color: #e6e8ea;
-  padding: 12px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-radius: 5px;
-  border-width: 1.2px;
-  height: 20px;
-  outline: none;
-  border: none;
-  box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
-}
+@layer base {
+  Input {
+    position: relative;
+    /* background-color: #303132; */
+    background-color: #e6e8ea;
+    padding: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+    border-width: 1.2px;
+    height: 20px;
+    outline: none;
+    border: none;
+    box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
+  }
 
-Input[type="range"] {
-  background-color: transparent;
-  box-shadow: unset;
-}
+  Input[type="range"] {
+    background-color: transparent;
+    box-shadow: unset;
+  }
 
-textarea {
-  position: relative;
-  /* background-color: #303132; */
-  background-color: #e6e8ea;
-  padding: 12px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-radius: 5px;
-  border-width: 1.2px;
-  outline: none;
-  border: none;
-  box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
-  font: caption;
-  /* min-width: 450px; */
-}
+  textarea {
+    position: relative;
+    /* background-color: #303132; */
+    background-color: #e6e8ea;
+    padding: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+    border-width: 1.2px;
+    outline: none;
+    border: none;
+    box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
+    font: caption;
+    /* min-width: 450px; */
+  }
 
-button {
-  border: none;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 16px;
-  background-color: rgb(230, 230, 230);
-  box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
+  button {
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: rgb(230, 230, 230);
+    box-shadow: 0 0px 1px 0 rgb(0, 0, 0);
+  }
 }
 
 .secondary_element {
@@ -375,8 +393,10 @@ a {
   text-align: center;
 }
 
-@media screen and (pointer:none), (pointer:coarse) {
-  input, textarea {
-    font-size: 16px;
+@layer base {
+  @media screen and (pointer:none), (pointer:coarse) {
+    input, textarea {
+      font-size: 16px;
+    }
   }
 }

@@ -9,6 +9,12 @@ function getPlatformApiURLWithoutPathname() {
         let custom_api = new URL(custom_api_str);
         return remove_trailing_slash(custom_api.href);
     }
+    else if (process.env.NEXT_PUBLIC_api_endpoint) {
+        // Build/dev-time override: point the frontend at an arbitrary API
+        // origin (e.g. http://localhost:4459 during local dev).
+        let api_url = new URL("/api/native-v1", process.env.NEXT_PUBLIC_api_endpoint);
+        return remove_trailing_slash(api_url.href);
+    }
     else if (typeof window != "undefined") {
         let api_url = new URL(`${window.location.protocol}//${window.location.host}/api/native-v1`);
         return remove_trailing_slash(api_url.href);

@@ -5,49 +5,89 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    /* background-image: url("/placeholders/moon-1.jpg"); */
-    /* background-image: url("https://images.unsplash.com/photo-1732482124606-697008dab09c?q=80&w=2942&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-    background-size: cover; */
-    /* background-color: rgba(255, 255, 255, 0.386); */
-    /* background-color: rgba(0, 0, 0, 0.597); */
-    /* background-color: rgba(0, 0, 0, 0.468);
-    background-blend-mode: overlay;
-    overflow: hidden;
-    background-position: 50%; */
 }
 
-/* .search_bar_input {
-    width: 600px;
-    padding: 14px;
-    font-size: 14px;
-} */
+/* The search input is `position: relative` (global `Input` base rule), which
+   lifts it — and its drop shadow — into a paint layer above its in-flow
+   siblings. Promote everything else in the column above that layer so the
+   shadow never tints content placed below the bar (credits, links, etc.).
+   Targets any direct child except the bar itself, so future content is covered
+   without per-element fixes. */
+.search_container > :not(.search_bar_container) {
+    position: relative;
+    z-index: 1;
+}
 
 .search_bar_background {
     position: absolute;
     z-index: -1;
 }
 
-.search_bar_container {
-    display: flex;
-    flex-direction: column;
-    row-gap: 12px;
-
-    margin-top: -45px;
-    width: 100%;
-}
-
+/* Search bar visuals (scoped to the home search page) */
 .search_bar_container .search_bar_input {
-    width: 600px;
+    width: 640px;
     max-width: 90%;
     box-sizing: border-box;
     align-self: center;
+
+    background-color: #ffffff;
+    /* parent sets `text-white`; override so typed text is visible on the white input */
+    color: #202124;
+    font-size: 16px;
+    padding: 18px 20px;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    transition: box-shadow 0.15s ease;
+}
+
+.search_bar_container .search_bar_input::placeholder {
+    color: #9aa0a6;
+}
+
+.search_bar_container .search_bar_input:focus {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
 .search_bar_container .logo_div .logo_title {
-    font-size: 35px;
+    font-size: 48px;
     color: white;
+    letter-spacing: -0.5px;
 }
 
 .search_bar_container .legal {
     font-size: 14px;
+}
+
+.search_container .image-attribution {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    /* keep clear of mobile home indicators / rounded corners */
+    padding: 10px max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom));
+
+    /* font-size: 11px; */
+    font-size: 12px;
+    /* muted + soft shadow so it reads on any photo without grabbing attention */
+    color: rgba(255, 255, 255, 0.55);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    transition: color 0.15s ease;
+}
+
+.search_container .image-attribution:hover {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.search_container .image-attribution a {
+    color: inherit;
+}
+
+@media (max-width: 480px) {
+    .search_container .image-attribution {
+        /* center under the search bar on narrow screens */
+        left: 0;
+        right: 0;
+        justify-content: center;
+        text-align: center;
+        font-size: 10px;
+    }
 }

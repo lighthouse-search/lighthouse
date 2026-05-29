@@ -10,6 +10,7 @@ import ProfilePic from "@/components/user/profile_pic";
 import Loading from "@/components/navigating/in-progress/loading";
 import Backdrop_content from "@/components/rows/backdrop/backdrop_content";
 import Input_with_header from "@/components/input/input_with_header";
+import { open_developer_settings } from "@/components/settings/open_developer_settings";
 import Link from "next/link";
 import Switch_with_text from "@/components/switches/frames/rows/switch_with_text";
 
@@ -37,8 +38,11 @@ export default function Settings() {
     if (user == null) {
         return (
             <Home1 className="query_search_container">
-                <div className="settings">
+                <div className="settings column row_gap_8">
                     <Loading/>
+                    {/* Keep developer settings reachable even when the API is
+                        unreachable, so a bad endpoint can be corrected. */}
+                    <button onClick={open_developer_settings}>Developer settings</button>
                 </div>
             </Home1>
         )
@@ -98,6 +102,10 @@ export default function Settings() {
                             <option value="not_saved">No</option>
                         </select>
                     </Switch_with_text>
+                </Backdrop_content>
+
+                <Backdrop_content header="Developer" className="column row_gap_8">
+                    <button onClick={open_developer_settings}>Developer settings</button>
                 </Backdrop_content>
 
                 <div className="column">

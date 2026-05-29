@@ -1,0 +1,65 @@
+/* Size to content instead of inheriting the global dialog min-width (400px)
+   and dialog_frame min-height (140px), which leave this small dialog loose. */
+.developer_settings_dialog {
+    min-width: 0;
+    width: 400px;
+    max-width: 92vw;
+    border-radius: 10px;
+}
+
+.developer_settings_dialog .dialog_frame {
+    min-height: unset;
+    row-gap: 12px;
+}
+
+.developer_settings_dialog .dialog_header {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Monospace, full-width URL field. */
+.developer_settings_dialog .input_with_header_input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    background-color: #f3f4f6;
+}
+
+.developer_settings_dialog_hint {
+    line-height: 1.45;
+}
+
+.developer_settings_dialog_actions {
+    margin-top: 2px;
+}
+
+/* Primary action. */
+.developer_settings_dialog_save {
+    background-color: #111827;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.developer_settings_dialog_save:hover {
+    filter: brightness(1.3);
+}
+
+/* Secondary / ghost action. */
+.developer_settings_dialog_reset {
+    background-color: transparent;
+    color: #374151;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    box-shadow: none;
+}
+
+.developer_settings_dialog_reset:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+    filter: none;
+}

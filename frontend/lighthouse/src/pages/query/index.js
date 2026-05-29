@@ -14,17 +14,50 @@ import { Lighthouse } from "@oracularhades/lighthouse";
 import { credentials_object } from "@/global";
 import { useRouter } from "next/router";
 import Loading from "@/components/navigating/in-progress/loading";
-import Illegal_content from "./display/illegal-content";
 import Backdrop_content from "@/components/rows/backdrop/backdrop_content";
+// import ContentTypes from "@/components/internal_components/search/content-type/ContentTypes";
+
+const Right = (() => {
+    return (
+        <div className="column row_gap_8">
+            {/* <InfoCard/> */}
+        </div>
+    )
+});
+
+const Search_base = ((props) => {
+    return (
+        <Home1 className="query_search_container">
+            <div className="search_row row align_items_unset column_gap_10">
+                <div className="query_search_results_outer row_gap_6">
+                    <div className="query_search_bar_container">
+                        <Search_Input1 on_search={props.on_search} className="query_search_bar_input"/>
+                        <Button_with_icon icon="/icons/filter1.svg"/>
+                    </div>
+
+                    {/* <ContentTypes/> */}
+
+                    <div className={`query_search_results row_gap_6 ${props.className ?? ""}`}>
+                        {props.children}
+                    </div>
+                </div>
+
+                <div className="column row_gap_6">
+                    <Right/>
+                </div>
+            </div>
+        </Home1>
+    )
+});
 
 export default function Query() {
     const router = useRouter();
     const should_run = useRef(true);
+    const [loading, setLoading] = useState(true);
     const [results, set_results] = useState(null);
     const [stats, set_stats] = useState(null);
     const [users, set_users] = useState([]);
     const [error, set_error] = useState(null);
-    const [is_content_blocked, set_is_content_blocked] = useState(false);
 
     async function get_user() {
         const users_v = await hydrate_users(["jcsalterego.bsky.social"]);
@@ -32,11 +65,8 @@ export default function Query() {
         set_users(users_v)
     }
 
-    async function content_blocked() {
-        set_is_content_blocked(true);
-    }
-
     async function run(query) {
+        setLoading(true)
         set_results(null);
         try {
             // await content_blocked();
@@ -47,6 +77,8 @@ export default function Query() {
             set_error(null);
         } catch (error) {
             set_error(error);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -68,76 +100,30 @@ export default function Query() {
         get_user();
     });
 
-    const Right = ((props) => {
-        return (
-            <div className="column row_gap_8">
-                {/* <InfoCard/> */}
-            </div>
-        )
-    });
-
-    const Search_base = ((props) => {
-        return (
-            <Home1 className="query_search_container">
-                <div className="search_row row align_items_unset column_gap_10">
-                    <div className="query_search_results_outer row_gap_6">
-                        <div className="query_search_bar_container">
-                            {/* <Logo/> */}
-                            <Search_Input1 on_search={(value) => { run(value); }} className="query_search_bar_input"/>
-                            {/* <Button_with_icon icon="/icons/filter1.svg"/> */}
-                        </div>
-
-                        <div className={`query_search_results row_gap_6 ${props.className}`}>
-                            {props.children}
-                        </div>
-                    </div>
-
-                    <div className="column row_gap_6">
-                        <Right/>
-                    </div>
-                </div>
-            </Home1>
-        )
-    });
-
-    if (error) {
-        return (
-            <Search_base>
-                <div className="row_gap_2">
-                    <h2>Something went wrong</h2>
-                    <p><span className="greyText">{error.message}</span></p>
-                </div>
-            </Search_base>
-        )
-    }
+    const view = error ? "error"
+        : loading == true ? "loading"
+        : !results || results.length == 0 ? "empty"
+        : "results";
     
-    if (is_content_blocked == true) {
-        return (
-            <Illegal_content/>
-        )
-    }
-
-    if (results == null) {
-        return (
-            <Search_base>
-                <Loading/>
-            </Search_base>
-        )
-    }
-
-    if (results.length == 0) {
-        return (
-            <Search_base>
-                <div className="row row_gap_2">
-                    <p className="greyText width_100 text_center">Sorry, we couldn't find any results.</p>
-
-                    {/* <p>We searched under the bed,<br/>
- we searched under the chair,<br/>
-we looked all around, but<br/>
-it's just not there.</p><br/> */}
+    switch (view) {
+        case "error": return (
+            <Search_base on_search={(value) => { run(value); }}>
+                <div className="mx-auto mt-[72px] flex max-w-[420px] flex-col items-center gap-2 px-4 text-center">
+                    <h2 className="text-xl font-bold">Something went wrong</h2>
+                    <p className="text-sm leading-relaxed text-neutral-500">{error.message}</p>
+                    <button onClick={() => run()} className="mt-1 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow-none hover:brightness-125">Try again</button>
                 </div>
             </Search_base>
-        )
+        );
+        case "loading": return <Search_base on_search={(value) => { run(value); }}><Loading/></Search_base>;
+        case "empty": return (
+            <Search_base on_search={(value) => { run(value); }}>
+                <div className="mx-auto mt-[72px] flex max-w-[420px] flex-col items-center gap-2 px-4 text-center">
+                    <h2 className="text-xl font-bold">No results</h2>
+                    <p className="text-sm leading-relaxed text-neutral-500">Try adjusting filters or changing your query.</p>
+                </div>
+            </Search_base>
+        );
     }
 
     const results_ul = results.map((data) => {
@@ -153,10 +139,11 @@ it's just not there.</p><br/> */}
     });
 
     return (
-        <Search_base right={<Right/>}>
+        <Search_base on_search={(value) => { run(value); }}>
             {/* <p className="do_you_mean greyText">Do you mean <Link href={search_builder("skeet")} className="hover_underline">skeet</Link>, <Link href={search_builder("poasting")} className="hover_underline">poasting</Link>?</p> */}
             {/* <p className="do_you_mean greyText">Suggested: <Link href={search_builder("beans")} className="hover_underline">beans</Link></p> */}
             {/* <p className="do_you_mean greyText">Took: </p> */}
+
             <div className="column row_gap_6">
                 {/* <AI_Search1/> */}
                 {/* <div className="outline">
