@@ -1,0 +1,75 @@
+name: Update dependencies
+
+# Bumps every package manifest's dependencies once a week and commits the
+# refreshed lockfiles back to the repo.
+on:
+  schedule:
+    # Every Monday at 06:00 UTC.
+    - cron: '0 6 * * 1'
+  # Allow running it on demand from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Enable Corepack (latest Yarn)
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+
+      # Rust crates: refresh Cargo.lock within the semver ranges in Cargo.toml.
+      - name: Update Rust dependencies
+        run: |
+          for dir in server crawling/queue-trafficlight; do
+            if [ -f "$dir/Cargo.toml" ]; then
+              echo "::group::cargo update ($dir)"
+              (cd "$dir" && cargo update)
+              echo "::endgroup::"
+            fi
+          done
+
+      # Node packages: use the latest Yarn where a yarn.lock exists (matches the
+      # build), otherwise fall back to npm. node-modules linker keeps Yarn from
+      # switching the project to Plug'n'Play.
+      - name: Update Node dependencies
+        env:
+          YARN_NODE_LINKER: node-modules
+        run: |
+          for dir in . frontend/lighthouse libraries/npm; do
+            if [ -f "$dir/package.json" ]; then
+              echo "::group::node update ($dir)"
+              if [ -f "$dir/yarn.lock" ]; then
+                (cd "$dir" && yarn install && yarn up '*')
+              elif [ -f "$dir/package-lock.json" ]; then
+                (cd "$dir" && npm update)
+              fi
+              echo "::endgroup::"
+            fi
+          done
+
+      - name: Commit and push updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No dependency updates this week."
+          else
+            git add -A
+            git commit -m "chore(deps): weekly dependency update"
+            git push
+          fi

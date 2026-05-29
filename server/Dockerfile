@@ -7,9 +7,7 @@ LABEL org.opencontainers.image.source=https://gitlab.com/oracularhades/guard
 COPY server/Cargo.lock /rover-server/Cargo.lock
 COPY server/Cargo.toml /rover-server/Cargo.toml
 COPY server/start-webservers.sh /rover-server/start-webservers.sh
-COPY server/Rocket.toml /rover-server/Rocket.toml
 COPY server/guard /rover-server/guard
-COPY server/nginx /rover-server/nginx
 COPY server/src /rover-server/src
 COPY frontend /rover-server/frontend
 COPY libraries /rover-server/libraries
@@ -71,14 +69,11 @@ RUN mv /rover-server/frontend/lighthouse/next.config.js /rover-server-built/fron
 RUN mv /rover-server/frontend/lighthouse/jsconfig.json /rover-server-built/frontend/lighthouse/jsconfig.json
 RUN mv /rover-server/frontend/lighthouse/node_modules /rover-server-built/frontend/lighthouse/node_modules
 
-# Files like opensearch.xml are used in NGINX
 RUN mv /rover-server/frontend/lighthouse/public /rover-server-built/frontend/lighthouse/public
 
 # RUN mv /rover-server/frontend/admin/_static /rover-server-built/frontend/admin/_static
 RUN mv /rover-server/target /rover-server-built/target
 RUN mv /rover-server/start-webservers.sh /rover-server-built/start-webservers.sh
-RUN mv /rover-server/Rocket.toml /rover-server-built/Rocket.toml
-RUN mv /rover-server/nginx /rover-server-built/nginx
 
 COPY server/guard/guard-config.toml /rover-server/guard/guard-config.toml
 RUN mv /rover-server/guard /rover-server-built/guard
@@ -97,7 +92,7 @@ COPY --from=build-finalise-stage /rover-server /rover-server
 
 # Install libcap2-bin for setting capabilities
 RUN apt update
-RUN apt install -y libcap2-bin default-mysql-client dnsutils tree nginx
+RUN apt install -y libcap2-bin default-mysql-client dnsutils tree
 
 # Add a non-root user kube with restricted shell
 RUN adduser linuxbrew --disabled-login
@@ -109,15 +104,11 @@ RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.co
 RUN brew install node
 USER root
 
-RUN chown -R linuxbrew /var/lib/nginx
-RUN chown -R linuxbrew /var/log/nginx
-RUN mkdir -p /rover-server/nginx/run
-RUN chown -R linuxbrew /rover-server/nginx/run
-
-# Expose port 80 for NGINX
+# Expose port 80, served directly by the axum server.
 EXPOSE 80
 
-RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx
+# Allow the non-root user to bind the privileged port 80.
+RUN setcap 'cap_net_bind_service=+ep' /rover-server/target/release/lighthouse-server
 
 RUN chmod +x /rover-server/guard/guard-server
 RUN chmod +x /rover-server/start-webservers.sh
