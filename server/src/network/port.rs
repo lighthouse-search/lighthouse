@@ -23,18 +23,14 @@ pub fn is_port_available(port: u16) -> bool {
 }
 
 pub fn find_available_port() -> Result<u16, String> {
-    let mut last_attempted = 4000;
-
-    loop {
-        if (last_attempted > 65535) {
-            return Err("Failed to find port (between 4000 and 65535). Either not port is available of Guard has insufficient permissions.".to_string());
-        }
-        
-        if is_port_available(last_attempted) {
-            return Ok(last_attempted);
-        } else {
-            // Try again.
-            last_attempted += 1;
+    // Iterate as u32 so the 65535 upper bound is actually reachable; a u16
+    // counter would overflow-panic before the bound could ever be checked.
+    for port in 4000u32..=65535 {
+        let port = port as u16;
+        if is_port_available(port) {
+            return Ok(port);
         }
     }
+
+    Err("Failed to find port (between 4000 and 65535). Either no port is available or Guard has insufficient permissions.".to_string())
 }

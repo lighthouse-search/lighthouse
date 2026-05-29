@@ -1,46 +1,41 @@
-use rocket::form::validate::Contains;
-use rocket::response::{Debug, status::Created, status};
-use rocket::http::Status;
-use rocket::response::status::Custom;
-use rocket::serde::json::Json;
-use rocket::{get, post};
+use axum::extract::Query;
+use axum::http::StatusCode;
+use axum::Json;
 
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use serde_json::{Value, json};
 
-use diesel::prelude::*;
-use diesel::sql_types::*;
-use diesel::sql_query;
+use opensearch::SearchParts;
 
-use opensearch::{BulkOperation, BulkParts, SearchParts};
-
-use crate::database::elasticsearch_parse_response;
-use crate::global::{ generate_random_id, get_timestamp, is_null_or_whitespace, request_authentication };
+use crate::global::{ get_timestamp, is_null_or_whitespace };
 use crate::responses::*;
 use crate::structs::*;
-use crate::tables::*;
 use crate::ES;
 
-use uuid::Uuid;
+#[derive(Debug, Default, Deserialize)]
+pub struct Query_list_params {
+    pub query: Option<String>,
+    pub authenticator_pathname: Option<String>,
+    pub filter: Option<String>,
+}
 
-#[get("/list?<query>&<authenticator_pathname>&<filter>")]
-pub async fn query_list(query: Option<String>, authenticator_pathname: Option<String>, filter: Option<String>, params: &Query_string) -> Custom<Value> {
+pub async fn query_list(Query(params): Query<Query_list_params>) -> (StatusCode, Json<Value>) {
+    let Query_list_params { query, authenticator_pathname: _, filter: _ } = params;
     let mut timing_markers = Vec::new();
     timing_markers.push(get_timestamp());
-    let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
 
-    // let request_authentication_output: Request_authentication_output = match request_authentication(None, params, "/query/list").await {
+    // let request_authentication_output: Request_authentication_output = match request_authentication(None, &params, "/query/list").await {
     //     Ok(data) => data,
-    //     Err(e) => return status::Custom(Status::Unauthorized, not_authorized())
+    //     Err(e) => return (StatusCode::UNAUTHORIZED, Json(not_authorized()))
     // };
 
-    if (is_null_or_whitespace(query.clone())) {
-        return status::Custom(Status::BadRequest, not_found("params.query is null or whitespace."));
+    if is_null_or_whitespace(query.clone()) {
+        return (StatusCode::BAD_REQUEST, Json(not_found("params.query is null or whitespace.")));
     }
     
     let query_unwrapped = query.unwrap();
 
-    let mut should: Vec<Value> = vec![
+    let should: Vec<Value> = vec![
         json!({
             "bool": {
                 "should": [
@@ -65,7 +60,7 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     // let mut discussion_output: Option<std::collections::HashMap<String, i64>> = None;
     let _source: Vec<&str> = vec!["host", "url", "content.title", "content.text", "content.urls", "content.metatag", "content.linktag", "indexed"];
 
-    let mut query: Value = json!({
+    let query: Value = json!({
         "track_total_hits": true,
         "size": 100,
         "sort": [
@@ -101,9 +96,9 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
     let response_body = response.json::<Value>().await.expect("Failed to parse response.");
     // println!("response_body {}", response_body.clone());
 
-    if (response_body["error"].is_null() == false) {
+    if response_body["error"].is_null() == false {
         println!("search backend returned an error: {}", response_body.clone());
-        return status::Custom(Status::InternalServerError, error_message("internal_server_error", "Sorry, something went wrong."));
+        return (StatusCode::INTERNAL_SERVER_ERROR, Json(error_message("internal_server_error", "Sorry, something went wrong.")));
     }
 
     timing_markers.push(get_timestamp() - timing_markers[0]);
@@ -120,11 +115,11 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
                 favicon: None
             };
             
-            if (response["content"]["metatag"]["og:title"].is_null() == false) {
+            if response["content"]["metatag"]["og:title"].is_null() == false  {
                 output.title = response["content"]["metatag"]["og:title"].as_str().map(|s| s.to_string());
             } 
             
-            if (response["content"]["metatag"]["og:description"].is_null() == false) {
+            if response["content"]["metatag"]["og:description"].is_null() == false  {
                 output.text = response["content"]["metatag"]["og:description"].as_str().map(|s| s.to_string());
             } else {
                 output.text = hit["highlight"]["content.text"][0].as_str().map(|s| s.to_string());
@@ -151,7 +146,7 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
 
     println!("timing_markers: {:?}", timing_markers.clone());
 
-    status::Custom(Status::Ok, json!({
+    (StatusCode::OK, Json(json!({
         "ok": true,
         "data": results,
         "stats": json!({
@@ -159,5 +154,5 @@ pub async fn query_list(query: Option<String>, authenticator_pathname: Option<St
             "took": response_body["took"]
         }),
         // "timing": timing_markers[timing_markers.len()-1] - timing_markers[0]
-    }))
+    })))
 }

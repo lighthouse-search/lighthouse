@@ -1,24 +1,16 @@
 use diesel::prelude::*;
 
-use std::process::{Command, Stdio};
 use std::error::Error;
 use std::collections::HashMap;
-use std::fs::{File};
-use std::io::Write;
-use std::env;
 
-use crate::CONFIG_VALUE;
 use crate::structs::*;
 use crate::tables::*;
 
 use url::Url;
 use rand::prelude::*;
 
-use lettre::message::header::ContentType;
-use lettre::transport::smtp::authentication::Credentials;
-use lettre::{Message, SmtpTransport, Transport};
 
-use hades_auth::{authenticate, static_auth_verify};
+use hades_auth::authenticate;
 
 pub fn generate_random_id() -> String {
     let mut random_string = String::new();
@@ -43,7 +35,7 @@ pub fn get_timestamp() -> u128 {
 }
 
 pub fn is_null_or_whitespace(data: Option<String>) -> bool {
-    if (data.is_none()) {
+    if data.is_none()  {
         return true;
     }
     let s = data.unwrap();
@@ -66,7 +58,7 @@ pub async fn request_authentication(body: Option<String>, params: &Query_string,
     }
 
     // Check request params include a deviceid.
-    if (params_object.get("deviceid").is_none()) {
+    if params_object.get("deviceid").is_none()  {
         // throw an error.
     }
 
@@ -85,7 +77,7 @@ pub async fn request_authentication(body: Option<String>, params: &Query_string,
     };
 
     // Check request params include a authenticator_jwt_token param.
-    if (params_object.get("authenticator_JWT_Token").is_none()) {
+    if params_object.get("authenticator_JWT_Token").is_none()  {
         // throw an error.
     }
     // Parse JWT token.
@@ -102,7 +94,7 @@ pub async fn request_authentication(body: Option<String>, params: &Query_string,
         .expect("Something went wrong querying the DB1.");
 
     // Check the device exists.
-    if (result.is_none()) {
+    if result.is_none()  {
         return Err("Authentication failed [device doesn't exist]".into())
     }
 

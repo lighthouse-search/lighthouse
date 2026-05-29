@@ -1,31 +1,18 @@
-use std::vec;
+use axum::http::StatusCode;
+use axum::Json;
 
-use rocket::response::{Debug, status::Created};
-use rocket::response::status;
-use rocket::http::Status;
-use rocket::response::status::Custom;
-use rocket::serde::json::Json;
-use rocket::{get, post};
-
-use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 
 use diesel::prelude::*;
-use diesel::sql_types::*;
-use diesel::sql_query;
 
-use crate::global::{ generate_random_id, get_timestamp, is_null_or_whitespace, request_authentication };
-use crate::responses::*;
+use crate::global::{ get_timestamp, is_null_or_whitespace };
 use crate::structs::*;
-use crate::tables::*;
 use crate::ES;
 
-use opensearch::{BulkOperation, BulkParts, SearchParts};
-use uuid::Uuid;
+use opensearch::{BulkOperation, BulkParts};
 use url::Url;
 
-#[post("/index", format = "application/json", data = "<body>")]
-pub async fn crawler_index(params: &Query_string, mut body: Json<Crawler_index_body>) -> Custom<Value> {
+pub async fn crawler_index(Json(body): Json<Crawler_index_body>) -> (StatusCode, Json<Value>) {
     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
 
     // // TODO: This authentication needs to be locked to crawlers only.
@@ -38,21 +25,21 @@ pub async fn crawler_index(params: &Query_string, mut body: Json<Crawler_index_b
 
     // TODO: Return errors here.
     for data in actions.clone() {
-        if (is_null_or_whitespace(data.url.clone())) {
+        if is_null_or_whitespace(data.url.clone())  {
             
         }
 
-        if (data.content.is_none() == true) {
+        if data.content.is_none() == true  {
             
         }
         let content_unwrapped: Crawler_index_body_action_content = data.content.clone().expect("missing body.content");
-        if (is_null_or_whitespace(content_unwrapped.title.clone()) == true) {
+        if is_null_or_whitespace(content_unwrapped.title.clone()) == true  {
 
         }
-        if (is_null_or_whitespace(content_unwrapped.text.clone()) == true) {
+        if is_null_or_whitespace(content_unwrapped.text.clone()) == true  {
 
         }
-        if (content_unwrapped.urls.is_none() == true || content_unwrapped.urls.clone().unwrap().len() == 0) {
+        if content_unwrapped.urls.is_none() == true || content_unwrapped.urls.clone().unwrap().len() == 0  {
 
         }
     };
@@ -73,7 +60,7 @@ pub async fn crawler_index(params: &Query_string, mut body: Json<Crawler_index_b
         let parsed_url = Url::parse(&url).expect("Failed to parse URL");
 
         for (_, link) in content.urls.clone().unwrap_or(Vec::new()).iter().enumerate() {
-            if (url_queue.iter().position(|x| &x.url == link).is_some()) {
+            if url_queue.iter().position(|x| &x.url == link).is_some()  {
                 continue;
             }
             url_queue.push(UrlQueue {
@@ -130,26 +117,25 @@ pub async fn crawler_index(params: &Query_string, mut body: Json<Crawler_index_b
         .execute(&mut *db).expect("Failed to insert URL.");
     }
 
-    return status::Custom(Status::Ok, json!({
+    return (StatusCode::OK, Json(json!({
         "ok": true
-    }));
+    })));
 }
 
-#[get("/queue")]
-pub async fn crawler_queue(params: &Query_string) -> Custom<Value> {
+pub async fn crawler_queue() -> (StatusCode, Json<Value>) {
     let mut db = crate::DB_POOL.get().expect("Failed to get a connection from the pool.");
 
     let node_id = std::env::var("lighthouse_node_id").unwrap_or_else(|_| "node-1".to_string());
 
     // Atomically claim the next queued URL for this node (see crawl::queue).
     match crate::crawl::queue::claim_next_url(&mut *db, &node_id) {
-        Some(item) => status::Custom(Status::Ok, json!({
+        Some(item) => (StatusCode::OK, Json(json!({
             "ok": true,
             "data": vec![item]
-        })),
-        None => status::Custom(Status::Ok, json!({
+        }))),
+        None => (StatusCode::OK, Json(json!({
             "ok": true,
             "data": Vec::<Crawler_queue>::new()
-        })),
+        }))),
     }
 }

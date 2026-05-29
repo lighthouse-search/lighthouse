@@ -2,11 +2,9 @@ use std::collections::HashMap;
 
 use diesel::prelude::*;
 use crate::tables::*;
-use diesel::r2d2::{self, ConnectionManager};
 
 use serde::{Serialize, Deserialize};
-use serde_json::{Value, json};
-use rocket::serde::json::Json;
+use serde_json::Value;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
@@ -220,7 +218,6 @@ pub struct Request_authentication_output {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
 #[diesel(table_name = accounts)]
 pub struct Accounts {
     pub id: String,
@@ -301,7 +298,6 @@ impl From<Accounts> for Accounts_me {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName)]
-#[serde(crate = "rocket::serde")]
 #[diesel(table_name = crawler_queue)]
 pub struct Crawler_queue {
     pub id: i64,
@@ -314,7 +310,6 @@ pub struct Crawler_queue {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Queryable, Insertable, Selectable, QueryableByName, Identifiable)]
-#[serde(crate = "rocket::serde")]
 #[diesel(table_name = device)]
 pub struct Device {
     pub id: String,

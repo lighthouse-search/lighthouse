@@ -1,10 +1,9 @@
-use rocket::http::{ContentType, Status};
-use rocket::get;
+use axum::http::{header, StatusCode};
+use axum::response::IntoResponse;
 
 use crate::structs::*;
 
-#[get("/opensearch.xml")]
-pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
+pub async fn opensearch(headers: Headers) -> impl IntoResponse {
     let mut _host_string: String = String::new();
     
     if headers.headers_map.get("x-forwarded-host").is_none() == false {
@@ -25,7 +24,11 @@ pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
     } else if headers.headers_map.get("host").is_none() == false {
         _host_string = headers.headers_map.get("host").unwrap().to_string();
     } else {
-        return (Status::BadRequest, (ContentType::Text, "No headers.origin or headers.host provided.".to_string()));
+        return (
+            StatusCode::BAD_REQUEST,
+            [(header::CONTENT_TYPE, "text/plain".to_string())],
+            "No headers.origin or headers.host provided.".to_string(),
+        );
     }
 
     // IF missing http:// or https://, default to https://.
@@ -43,7 +46,7 @@ pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
 
     let output = format!("{}://{}:{}", scheme, host, url.port().unwrap_or(443));
 
-    (Status::Ok, (ContentType::new("application", "application/opensearchdescription+xml"), r#"<?xml version="1.0" encoding="utf-8"?>
+    (StatusCode::OK, [(header::CONTENT_TYPE, "application/opensearchdescription+xml".to_string())], r#"<?xml version="1.0" encoding="utf-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
 <ShortName>Lighthouse</ShortName>
 <Description>Search Lighthouse</Description>
@@ -51,5 +54,5 @@ pub async fn opensearch(headers: &Headers) -> (Status, (ContentType, String)) {
 <LongName>Lighthouse</LongName>
 <Url type="text/html" method="get" template="%DOMAIN%/query/?q={searchTerms}"/>
 <Url type="application/x-suggestions+json" template="%DOMAIN%/query/?q={searchTerms}"/>
-</OpenSearchDescription>"#.to_string().replace("%DOMAIN%", &output)))
+</OpenSearchDescription>"#.to_string().replace("%DOMAIN%", &output))
 }

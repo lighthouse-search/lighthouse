@@ -1,6 +1,4 @@
-use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
-use rocket::serde::json::Json;
 
 pub fn error_message(error_type: &str, message: &str) -> Value {
     return json!({

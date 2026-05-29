@@ -1,21 +1,11 @@
-use std::fmt::format;
-use std::process::{Command, Stdio};
 use std::error::Error;
-use std::collections::{HashMap};
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::fs;
-use std::fs::{File};
-use std::io::Write;
-use url::Url;
 
 use regex::Regex;
-use std::env;
 
 use serde_json::Value;
 
 use crate::globals::environment_variables;
 use crate::structs::*;
-use crate::tables::*;
 
 use crate::CONFIG_VALUE;
 
@@ -31,7 +21,7 @@ pub async fn validate_sql_table_inputs(raw_sql_tables: toml::Value) -> Result<bo
     for (key, value) in sql_tables {
         if let Some(table_name) = value.as_str() {
             let output = validate_table_name(table_name);
-            if (output != true) {
+            if output != true  {
                 return Err(format!("\"{}\" does not match A-Za-z1-9. This is necessary for SQL security, as table names are not bind-able.", key).into());
             }
         }

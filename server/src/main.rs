@@ -1,4 +1,10 @@
-// #[cfg(test)] mod tests;
+// // #[cfg(test)] mod tests;
+
+// // The project uses `Capitalized_snake_case` struct names as a deliberate
+// // convention, and keeps scaffolding structs/helpers for in-progress endpoints
+// // (websockets, guard, etc.). Allow both crate-wide rather than churn every
+// // call site or delete planned API surface.
+// #![allow(non_camel_case_types, dead_code)]
 
 mod diesel_mysql;
 mod global;
@@ -34,37 +40,21 @@ pub mod crawl {
     pub mod queue;
 }
 
-use diesel_mysql::Cors;
-// use guard::{build_guard_hostname_to_use, start_guard};
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::Header;
-use rocket::{catch, catchers, Build, Rocket};
-use rocket::{Request, Response, request, request::FromRequest};
-
-use std::error::Error;
-use std::fs;
-use std::collections::HashMap;
 use std::env;
-use std::path::PathBuf;
-use std::sync::Arc;
 
 use once_cell::sync::Lazy;
 use toml::Value;
 
-use crate::responses::*;
+use crate::network::port::find_available_port;
 use crate::structs::*;
-use crate::database::validate_sql_table_inputs;
-use crate::globals::environment_variables;
 
 use diesel::MysqlConnection;
-use diesel::prelude::*;
-use diesel::sql_types::*;
 use diesel::r2d2::{self, ConnectionManager};
 
-use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::{mpsc, Mutex, watch};
-use tokio_tungstenite::{accept_async, tungstenite::protocol::Message, tungstenite::protocol::CloseFrame};
-use futures_util::{StreamExt, SinkExt};
+use tokio::sync::{mpsc, Mutex};
+use tokio_tungstenite::tungstenite::protocol::Message;
+
+use tower_http::catch_panic::CatchPanicLayer;
 
 // Re-exported as `crate::ES` so existing call sites
 // (`use crate::ES; ES.search(...)`) keep working unchanged.
@@ -92,14 +82,15 @@ pub static CONFIG_VALUE: Lazy<Config> = Lazy::new(|| {
 
 fn get_config() -> Result<Config, String> {
     let environment_variable = "lighthouse_config";
-    let mut config_str: String = String::new();
-    if let Some(val) = env::var(environment_variable).ok() {
-        println!("Value of {}: {}", environment_variable, val);
-
-        config_str = val;
-    } else {
-        return Err(format!("Missing \"{}\" environment variable", environment_variable).into());
-    }
+    let config_str: String = match env::var(environment_variable).ok() {
+        Some(val) => {
+            println!("Value of {}: {}", environment_variable, val);
+            val
+        }
+        None => {
+            return Err(format!("Missing \"{}\" environment variable", environment_variable).into());
+        }
+    };
 
     let config_value: Value = toml::from_str(&config_str).unwrap();
     let config: Config = serde_json::from_value(serde_json::to_value(config_value).expect("Failed to convert config value from toml to serde::json")).expect("Failed to parse config");
@@ -110,21 +101,6 @@ fn get_config() -> Result<Config, String> {
 // pub static GUARD_HOSTNAME_TO_USE: Lazy<Guard_hostname_to_use> = Lazy::new(|| {
 //     build_guard_hostname_to_use().expect("build_guard_hostname_to_use() failed")
 // });
-
-#[catch(500)]
-fn internal_error() -> serde_json::Value {
-    error_message("server_error", "Internal server error")
-}
-
-async fn rocket() -> Rocket<Build> {
-    let figment = rocket::Config::figment();
-
-    println!("PORT");
-    rocket::custom(figment)
-        .attach(Cors)
-        .attach(diesel_mysql::stage())
-        .register("/", catchers![internal_error])
-}
 
 #[tokio::main]
 async fn main() {
@@ -137,8 +113,24 @@ async fn main() {
 
     // Promote `considering` URLs to `pending` so the crawl queue API has work
     // to hand out.
-    std::thread::spawn(|| crate::crawl::queue::consider_queue());
+    std::thread::spawn(crate::crawl::queue::consider_queue);
 
-    log::info!("Starting (Rocket) webserver...");
-    rocket().await.launch().await.expect("Failed to start web server");
+    let app = diesel_mysql::router()
+        .layer(axum::middleware::from_fn(diesel_mysql::cors_middleware))
+        .layer(CatchPanicLayer::custom(diesel_mysql::handle_panic));
+
+    let port: u16 = env::var("lighthouse_port")
+        .ok()
+        .and_then(|p| p.parse().ok())
+        .unwrap_or(find_available_port().expect("Failed to find port"));
+    let addr = format!("0.0.0.0:{}", port);
+
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .expect("Failed to bind web server");
+
+    log::info!("Starting (axum) webserver on {}...", addr);
+    axum::serve(listener, app)
+        .await
+        .expect("Failed to start web server");
 }

@@ -1,5 +1,4 @@
 use sha2::{Sha256, Digest};
-use rand::Rng;
 use hex::encode;
 
 pub fn hash(password: &str, salt: Option<&str>) -> String {

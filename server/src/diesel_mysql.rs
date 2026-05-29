@@ -1,116 +1,132 @@
-pub struct Cors;
+// Web layer: axum router, request extractors, and CORS middleware.
 
-use rocket::{options, routes, Response};
-use rocket::response::{Debug, status::Created};
-use rocket::response::status;
-use rocket::http::{Header, Status};
-use rocket::response::status::Custom;
-use rocket::request::{self, Request, FromRequest};
-use rocket::{fairing::{Fairing, Info, Kind}, State};
-use rocket::fairing::AdHoc;
-use rocket::fs::FileServer;
-
-use serde::{Serialize, Deserialize};
-use serde_json::{Value, json};
-use rocket::serde::json::Json;
-
-use diesel::prelude::*;
-use diesel::sql_types::*;
-
-use std::borrow::{Borrow, BorrowMut};
 use std::collections::HashMap;
-use std::error::Error;
-use std::process::{Command, Stdio};
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::env;
+use std::convert::Infallible;
 
-use std::fs::{File};
-use std::io::Write;
+use axum::{
+    body::Body,
+    extract::FromRequestParts,
+    http::{header, request::Parts, HeaderValue, Method, Request, StatusCode},
+    middleware::Next,
+    response::{IntoResponse, Response},
+    routing::{get, post},
+    Json, Router,
+};
 
-use rand::prelude::*;
-
-// use crate::endpoint::metadata::metadata_urls;
-use crate::global::{ generate_random_id, is_null_or_whitespace, request_authentication };
 use crate::responses::*;
 use crate::structs::*;
-use crate::tables::*;
 
-use hades_auth::*;
-
-use core::sync::atomic::{AtomicUsize, Ordering};
-
-use diesel::mysql::MysqlConnection;
-use diesel::r2d2::{self, ConnectionManager};
-use std::sync::Arc;
-
-#[options("/<_..>")]
-fn options_handler() -> &'static str {
-    ""
+/// Builds the full application router.
+pub fn router() -> Router {
+    Router::new()
+        .route("/opensearch.xml", get(crate::endpoint::misc::opensearch))
+        .route(
+            "/api/native-v1/query/list",
+            get(crate::endpoint::query::query_list),
+        )
+        .route(
+            "/api/native-v1/crawler/index",
+            post(crate::endpoint::crawler::crawler_index),
+        )
+        .route(
+            "/api/native-v1/crawler/queue",
+            get(crate::endpoint::crawler::crawler_queue),
+        )
+        .route(
+            "/api/native-v1/account/me",
+            get(crate::endpoint::account::account_me),
+        )
+        .route(
+            "/api/native-v1/account/list",
+            get(crate::endpoint::account::account_list),
+        )
+        .route(
+            "/api/native-v1/admin/index/job/list",
+            get(crate::endpoint::admin::index::admin_index_list),
+        )
+        .route(
+            "/api/native-v1/admin/index/job/update",
+            post(crate::endpoint::admin::index::admin_index_update),
+        )
 }
 
-pub fn stage() -> AdHoc {
-    AdHoc::on_ignite("Diesel SQLite Stage", |rocket| async {
-        rocket
-        .mount("/api", routes![options_handler])
-        .mount("/", routes![crate::endpoint::misc::opensearch])
-        // .mount("/api/native-v1/metadata", routes![metadata_urls])
-        .mount("/api/native-v1/query", routes![crate::endpoint::query::query_list])
-        .mount("/api/native-v1/crawler", routes![crate::endpoint::crawler::crawler_index, crate::endpoint::crawler::crawler_queue])
-        .mount("/api/native-v1/account", routes![crate::endpoint::account::account_me, crate::endpoint::account::account_list])
-        .mount("/api/native-v1/admin/index/job", routes![crate::endpoint::admin::index::admin_index_list, crate::endpoint::admin::index::admin_index_update])
-    })
+/// Mirrors the previous Rocket CORS fairing: permissive headers on every
+/// response, and a short-circuit 200 for CORS preflight (OPTIONS) requests.
+pub async fn cors_middleware(request: Request<Body>, next: Next) -> Response {
+    let is_preflight = request.method() == Method::OPTIONS;
+
+    let mut response = if is_preflight {
+        StatusCode::OK.into_response()
+    } else {
+        next.run(request).await
+    };
+
+    let headers = response.headers_mut();
+    headers.insert(
+        header::ACCESS_CONTROL_ALLOW_ORIGIN,
+        HeaderValue::from_static("*"),
+    );
+    headers.insert(
+        header::ACCESS_CONTROL_ALLOW_METHODS,
+        HeaderValue::from_static("POST, PATCH, PUT, DELETE, HEAD, OPTIONS, GET"),
+    );
+    headers.insert(
+        header::ACCESS_CONTROL_ALLOW_HEADERS,
+        HeaderValue::from_static("*"),
+    );
+    headers.insert(
+        header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+        HeaderValue::from_static("true"),
+    );
+    headers.remove(header::SERVER);
+
+    response
 }
 
-// Returns the current request's ID, assigning one only as necessary.
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for &'r Query_string {
-    type Error = ();
+/// Replaces Rocket's `#[catch(500)]`: turns a panicking handler into a JSON
+/// 500 instead of dropping the connection.
+pub fn handle_panic(_err: Box<dyn std::any::Any + Send + 'static>) -> Response {
+    let body = Json(error_message("server_error", "Internal server error"));
+    (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+}
 
-    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        // The closure passed to `local_cache` will be executed at most once per
-        // request: the first time the `RequestId` guard is used. If it is
-        // requested again, `local_cache` will return the same value.
+// Request extractor: the raw query string, used by `request_authentication`.
+impl<S> FromRequestParts<S> for Query_string
+where
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
 
-        request::Outcome::Success(request.local_cache(|| {
-            let query_params = request.uri().query().map(|query| query.as_str().to_owned()).unwrap_or_else(|| String::new());
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let query_params = parts
+            .uri
+            .query()
+            .map(|query| query.to_owned())
+            .unwrap_or_default();
 
-            Query_string(query_params)
-        }))
+        Ok(Query_string(query_params))
     }
 }
 
-#[rocket::async_trait]
-impl Fairing for Cors {
-    fn info(&self) -> Info {
-        Info {
-            name: "Cross-Origin-Resource-Sharing Fairing",
-            kind: Kind::Response,
-        }
-    }
+// Request extractor: all request headers as a lowercase-keyed map.
+impl<S> FromRequestParts<S> for Headers
+where
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
 
-    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-        response.set_header(Header::new(
-            "Access-Control-Allow-Methods",
-            "POST, PATCH, PUT, DELETE, HEAD, OPTIONS, GET",
-        ));
-        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-        response.remove_header("server");
-    }
-}
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let headers_map = parts
+            .headers
+            .iter()
+            .map(|(name, value)| {
+                (
+                    name.as_str().to_string(),
+                    value.to_str().unwrap_or_default().to_string(),
+                )
+            })
+            .collect::<HashMap<String, String>>();
 
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for &'r Headers {
-    type Error = ();
-
-    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        request::Outcome::Success(request.local_cache(|| {
-            let value = request.headers().iter()
-                .map(|header| (header.name.to_string(), header.value.to_string()))
-                .collect::<HashMap<String, String>>();
-
-            Headers { headers_map: value }
-        }))
+        Ok(Headers { headers_map })
     }
 }
