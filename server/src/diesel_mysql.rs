@@ -9,7 +9,7 @@ use axum::{
     http::{header, request::Parts, HeaderValue, Method, Request, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{any, get, post},
     Json, Router,
 };
 
@@ -48,6 +48,10 @@ pub fn router() -> Router {
             "/api/native-v1/admin/index/job/update",
             post(crate::endpoint::admin::index::admin_index_update),
         )
+        // Reverse-proxy the colocated services that used to sit behind nginx.
+        .route("/guard/{*path}", any(crate::proxy::guard_proxy))
+        // Anything else is the Next.js frontend.
+        .fallback(crate::proxy::frontend_proxy)
 }
 
 /// Mirrors the previous Rocket CORS fairing: permissive headers on every

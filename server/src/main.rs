@@ -14,6 +14,7 @@ mod tables;
 mod database;
 mod search;
 mod security;
+mod proxy;
 // mod guard;
 
 pub mod globals {
